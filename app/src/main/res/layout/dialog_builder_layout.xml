@@ -1,0 +1,46 @@
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="300dp"
+    android:layout_height="200dp"
+    android:weightSum="1">
+    <EditText
+        android:id="@+id/space_name"
+        android:inputType="textEmailAddress"
+        android:layout_width="279dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="Type your space Name"
+        android:layout_x="9dp"
+        android:layout_y="61dp" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send Actual Locations"
+        android:id="@+id/actual"
+        android:layout_x="33dp"
+        android:layout_y="120dp" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send Matched Locations"
+        android:id="@+id/matched"
+        android:layout_x="33dp"
+        android:layout_y="150dp" />
+
+    <TextView
+
+        android:layout_width="181dp"
+        android:layout_height="37dp"
+        android:text="Space Name"
+        android:id="@+id/title"
+        android:layout_x="51dp"
+        android:layout_y="16dp"
+        android:ellipsize="start"
+        android:textSize="30sp" />
+
+</AbsoluteLayout>

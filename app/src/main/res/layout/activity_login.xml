@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@drawable/backgroud_image">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+
+        android:weightSum="1">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="80dp"
+            android:id="@+id/tobBar"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="0.46">
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="195dp"
+            android:id="@+id/textFiedlHolder">
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="55dp"
+                android:inputType="phone"
+                android:ems="10"
+                android:id="@+id/etPhonenumber"
+                android:hint="Phone number"
+                android:textIsSelectable="false" />
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="55dp"
+                android:inputType="none|textPassword"
+                android:ems="10"
+                android:id="@+id/etPassword"
+                android:hint="Password" />
+
+            <ImageButton
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:id="@+id/login_button"
+                android:background="@drawable/login_button"
+                android:onClick="userLogin" />
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.35"
+            android:id="@+id/forgot_password">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textSize="17sp"
+                android:text="Forgot password?"
+                android:id="@+id/forgot_password_button"
+                android:textColor="#546a71"
+                android:layout_gravity="center_vertical" />
+
+            <TextView
+                android:layout_width="63dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textSize="17sp"
+                android:text="Register now"
+                android:id="@+id/signup_button"
+                android:textColor="#546a71"
+                android:layout_gravity="left|center_vertical"
+                android:gravity="right"
+                android:layout_weight="1.88"
+                android:onClick="userReg"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

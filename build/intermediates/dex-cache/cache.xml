@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-nearby/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="ef5f051e7308febe289dc93c67c5f32785b4260a">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-8a973ba6f47bc04c987b0323cb319a791209a7a4.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-fitness/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="3c0b099f9de16b265ecd6122fcb603e7d0d29f90">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-aac35b2931b8cadd5c770c499920640e09a4e0c7.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="4c93d99d454c975536bbe3b42283eee847f03ea3">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-c38e2ce4632d9c966226b54a17f21853c9877b3a.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-games/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="055783146ba9654a725442563be78cad303aad1f">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-121feac67190562b62e8c3df1f33cb6a91ecdc4b.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.1.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="983e2f375504bc04def18e709c35192afe92e65f">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-e8753a821c3b8d505a5ca242e6a94e1ee140dc2c.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="4cd0b093824b3228fffc21ea369b98d0b1db6566">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-09f1de7ba21dd06c5d7f2061b37939acfa16782c.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-safetynet/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="c976518693e89ad44fbfccfc654941eaec198d08">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-ea4ec2c69a1d482570fe950005f60bc5c9e57d4f.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-panorama/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="1c5a76debf0c2857ccad422c4a80ed785982f8df">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-ae4773986209cd130dde6f8b29f571dd68ec464b.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.1.0/jars/libs/internal_impl-22.1.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="025cb89f2896c63200ff4c2e6c467a95691d880a">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/internal_impl-22.1.0-f51ada6f938bab73d52ec98d1d6a9cf320551df0.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-ads/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="e3d791b42eaa90416cd0b2d2e608092794a3baa4">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-13efb617d5316b904e784e6585e71b13a8cfad7f.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-drive/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="41b3870cbe5fa546d8095b5b89d42cb69f3dd175">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-2de110ed857de4276bee2140d487729a42ba475d.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-plus/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="0e8228b4bc69c6a2c8d7c18498a77e53417d2574">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-a81bef38eb3d8bfc73bac4d8e87d1d394ebc9a5e.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-wearable/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="3033cc3a2c68dff3e5b646d6d084bdbdf7d00b25">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-d3f6cfb9eecb039a90ae3817d0800b19cfbdcfaf.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-wallet/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="a96b762bde4139de855735f175ec4d17dca55a6d">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-f8d56da1e4ddff04d9787661d5d53839b8014997.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-appstate/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="7ff613bf78ab057293892fdbd4169eda899c89b9">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-e12ea4588d1e9321da9cf74cdf06896086ea8734.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-location/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="73ccb92b70112f2e463e415ef8d7275de7da6516">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-6adf531c82d0976259192f8b4d1e2663e664f50a.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-identity/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="fb04b12526b0073c7fb1ebb70c5842d82ee95596">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-d83654cd5aa7255e4170535a0441cd593a5ec4ca.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.1.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="eeebabdfd8203f6ab639ccea4ffa1f20e1adee3a">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-5612dca93f59984b82af8a4598e730fd30c1d10e.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="29fd6d3794b71491c2789708cd8d03c71feb8954">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-de5555fc7dbefda8a65e3106e58e7155bf8a0ed5.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/22.1.0/support-annotations-22.1.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="281bc6c58ecb3644c23fbc5ee0452019f67b4d5d">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/support-annotations-22.1.0-e557b3f0936fbdb28ad47b0ba69191ec79c8ac5c.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-gcm/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="9224bc4c54ba95147c7eabd874573763c07cb6be">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-f62b1b8526765f360390f86e5b5fec487e2dcc5c.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-appindexing/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="a08d65794b844d8e7540bf9a33859bf3b2482d7f">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-00ed36ad6c0e0e13184046c802ae94bcdaec5b3c.jar" />
+    </item>
+    <item
+        jar="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-maps/7.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="17f8750d5c0749e44dd7c54aa390d9c937803825">
+        <dex dex="/Users/netlab/Desktop/Lab project/Desktop/netlab/Google_map_project/googlemap3/app/build/intermediates/pre-dexed/debug/classes-b07d56e0a81c25e45e7e78fe7ed954d1c6fef0fe.jar" />
+    </item>
+
+</items>

@@ -1,0 +1,41 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.sv2x.googlemap3.MainActivity">
+
+    <item android:id="@+id/connect_server"
+        android:title="@string/connect_server"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/create_space"
+        android:title="@string/create_space"
+        android:orderInCategory="200"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/join_space"
+        android:title="@string/join_space"
+        android:orderInCategory="300"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/leave_space"
+        android:title="@string/leave_space"
+        android:orderInCategory="300"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/file_handling"
+        android:title="@string/list_of_file"
+        android:orderInCategory="301"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/quit"
+        android:title="@string/quit"
+        android:orderInCategory="900"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/debug"
+        android:title="@string/debug"
+        android:orderInCategory="999"
+        app:showAsAction="never" />
+
+</menu>
