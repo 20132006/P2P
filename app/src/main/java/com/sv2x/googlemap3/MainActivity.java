@@ -2,10 +2,8 @@ package com.sv2x.googlemap3;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -15,14 +13,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -31,7 +26,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -40,21 +34,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.DatagramPacket;
@@ -62,11 +50,8 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.LinkedList;
 
 
 // cjoo: we need the implementations,
@@ -121,14 +106,14 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
     // cjoo: user states
     private User MyState = new User();
     private Users uList = new Users();
-    private String inputString;
-    private WifiManager wifiManager;
-    private WifiInfo wifiInfo;
+    private String                          inputString;
+    private WifiManager                     wifiManager;
+    private WifiInfo                        wifiInfo;
 
 
     private int interval_send_leaders_locations = 15000; // 15 seconds by default, can be changed later
     private Handler mHandler;
-
+    private ProvideInstructions ShowingInstruction;
 
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -196,106 +181,6 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
-
-/*
-    Runnable LeadersLocationRequest = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                updateLeadersLocations(); //this function can change value of mInterval.
-            } finally {
-                // 100% guarantee that this always happens, even if
-                // your update method throws an exception
-                mHandler.postDelayed(LeadersLocationRequest, interval_send_leaders_locations);
-            }
-        }
-    };
-
-    private void updateLeadersLocations() {
-
-        //message format Leader's id;lat;lng;updateTime;...;
-        int index;
-        String message = MyState.LeaderLocations;
-        String LeadersID;
-        index = message.indexOf(";");
-        LatLng newLocation;
-        if (index < 0){
-            return;
-        }
-        else{
-            LeadersID = message.substring(0,index);
-            message = message.substring( index+1 );
-        }
-
-        while (message.length() > 0)
-        {
-            LatLng location;
-            String lat,lgt,update_TIME;
-
-            index = message.indexOf(";");
-            if (index<0) {
-                return;
-            }
-            else{
-                lat = message.substring(0,index);
-                message = message.substring(index+1);
-            }
-
-            index = message.indexOf(";");
-            if (index<0) {
-                return;
-            }
-            else{
-                lgt = message.substring(0,index);
-                message = message.substring(index+1);
-            }
-
-            index = message.indexOf(";");
-            if (index<0) {
-                return;
-            }
-            else{
-                update_TIME = message.substring(0,index);
-                message = message.substring(index+1);
-            }
-
-            location = new LatLng(Double.parseDouble(lat),Double.parseDouble(lgt));
-            if (MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME))
-            {
-                if (MyState.isLeader == false)
-                {
-                    if (MyState.firstLeadersMark == true) {
-                        map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                        MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                        MyState.mLeadersLastLatLng = location;
-                        MyState.firstLeadersMark = false;
-                    }
-                    else {
-                        PolylineOptions line = new PolylineOptions()
-                                .add(MyState.mLeadersLastLatLng)
-                                .add(location);
-                        map.addPolyline(line);
-                    }
-
-                    if (MyState.LeadersMark != null) {
-
-                        MyState.LeadersMark.remove();
-                        MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                    }
-                }
-            }
-
-        }
-        stopSendingLeadersLocatons();
-    }
-
-    void startSendingLeadersLocatons() {
-        LeadersLocationRequest.run();
-    }
-
-    void stopSendingLeadersLocatons() {
-        mHandler.removeCallbacks(LeadersLocationRequest);
-    }*/
 
 
     public void run_file(String file_name)
@@ -659,9 +544,7 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
         MyState.mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (MyState.mLastLocation != null) {
             mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
-            //cjoo: the following shows the location (latitude) info. on screen
-;
-
+            //cjoo: the following shows the location (latitude) info. on screen;
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
             //CameraUpdateFactory.newLatLng(mLatLng);
         }
@@ -702,6 +585,73 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
                 //       when we update the location info.
                 MyState.mLastLocation = location;
                 MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
+
+
+
+
+                String Osrm_DATA = "{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"송현길 Songhyeon-gil\",\"송현길 Songhyeon-gil\",\"당앞로 (Dangap-ro)\"],\"matched_points\":[[35.568375,129.23154],[35.568238,129.231739],[35.567867,129.231957]],\"hint_data\":{\"locations\":[\"_____xsCggQR4zIAFwAAAAMAAAAVAAAA4wAAAMamzwPFps8DULEAAPe6HgK06rMHAQABAQ\",\"_____xsCggQR4zIABwAAABMAAAAVAAAA4wAAAMamzwPFps8DULEAAG66HgJ767MHAQABAQ\",\"ccuBBP____90604AEQAAADEAAAAAAAAAOwAAABTInAYfyJwGULEAAPu4HgJV7LMHAAABAQ\"],\"checksum\":1465161250},\"geometry\":[[35.568375,129.23154],[35.568238,129.231739],[35.56817,129.23184],[35.568,129.23212],[35.567867,129.231957]],\"indices\":[0,1,2],\"instructions\":[[\"10\",\"송현길 Songhyeon-gil\",24,0,2,\"23m\",\"SE\",130,1,\"NW\",310],[\"9\",\"송현길 Songhyeon-gil\",43,1,6,\"43m\",\"SE\",130,1,\"NW\",310],[\"3\",\"당앞로 (Dangap-ro)\",21,3,2,\"20m\",\"SW\",225,1,\"NE\",45],[\"15\",\"\",0,4,0,\"0m\",\"N\",0,1,\"N\",0]],\"route_summary\":{\"total_time\":7,\"total_distance\":88}}],\"debug\":{\"breakage\":[0,0,0],\"states\":[[{\"suspicious\":0,\"transitions\":[],\"pruned\":0,\"coordinate\":[35.568375,129.23154],\"viterbi\":-2.608959},{\"chosen\":1,\"suspicious\":0,\"transitions\":[{\"properties\":[-2.608959,-2.530021,-1.628658,23.587124,23.683226],\"to\":[1,1]}],\"pruned\":0,\"coordinate\":[35.568375,129.23154],\"viterbi\":-2.608959}],[{\"suspicious\":1,\"transitions\":[],\"pruned\":1,\"coordinate\":[35.568238,129.231739],\"viterbi\":-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368},{\"chosen\":1,\"suspicious\":0,\"transitions\":[{\"properties\":[-6.767638,-2.91161,-6.130394,64.361605,41.756824],\"to\":[2,0]}],\"pruned\":0,\"coordinate\":[35.568238,129.231739],\"viterbi\":-6.767638}],[{\"chosen\":1,\"suspicious\":0,\"transitions\":[],\"pruned\":0,\"coordinate\":[35.567867,129.231957],\"viterbi\":-15.809643},{\"suspicious\":1,\"transitions\":[],\"pruned\":1,\"coordinate\":[35.567867,129.231957],\"viterbi\":-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368}]]}}";
+
+                ShowingInstruction = new ProvideInstructions(getBaseContext());
+                ShowingInstruction.setOsrmQueryData(Osrm_DATA);
+
+                Location tempLoc = null;
+
+                tempLoc = new Location("Ttemp");
+
+                tempLoc.setLatitude(35.568406);
+                tempLoc.setLongitude(129.231486);
+                try {
+                    ShowingInstruction.QueryInstructions(tempLoc);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                tempLoc.setLatitude(35.568338);
+                tempLoc.setLongitude(129.231604);
+                try {
+                    ShowingInstruction.QueryInstructions(tempLoc);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                tempLoc.setLatitude(35.568233);
+                tempLoc.setLongitude(129.231754);
+                try {
+                    ShowingInstruction.QueryInstructions(tempLoc);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                tempLoc.setLatitude(35.568107);
+                tempLoc.setLongitude(129.231944);
+                try {
+                    ShowingInstruction.QueryInstructions(tempLoc);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                tempLoc.setLatitude(35.568019);
+                tempLoc.setLongitude(129.231998);
+                try {
+                    ShowingInstruction.QueryInstructions(tempLoc);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+
+
+                if (MyState.mySpaceId != "")
+                {
+                    try {
+                        ShowingInstruction.QueryInstructions(location);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
                 //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
@@ -821,6 +771,9 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
     }
 
     public void sendSpaceJoinRequest() {
+
+
+        ShowingInstruction = new ProvideInstructions(getBaseContext());
 
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -1096,6 +1049,21 @@ class Receive implements Runnable {
     private volatile boolean stopRequested;
     String complete_msg;
 
+    public String getLastReceivedOsrmData()
+    {
+        String temp =LastReceivedOsrmData;
+        LastReceivedOsrmData = "";
+        return temp;
+    }
+
+    public void setLastReceivedOsrmData(String lastReceivedOsrmData) {
+        LastReceivedOsrmData = lastReceivedOsrmData;
+    }
+
+    String LastReceivedOsrmData;
+
+
+
     public Receive(DatagramSocket sck, User state, Users uList, MainActivity myActivity) {
         this.rSocket = sck;
         this.MyState = state;
@@ -1241,11 +1209,14 @@ class Receive implements Runnable {
 
         if (messageState.equals("finish"))
         {
+            setLastReceivedOsrmData(complete_msg);
             int until;
             until = message.indexOf("*****");
             complete_msg += message.substring(0,until);
             httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask();
             httpAsyncTask.execute(complete_msg);
+
+
             complete_msg="";
         }
         else if (messageState.equals("to be continue"))
@@ -1267,8 +1238,6 @@ class Receive implements Runnable {
             return arg[0];
 
         }
-
-
 
         // onPostExecute displays the results of the AsyncTask.
 
@@ -1537,5 +1506,247 @@ class thread_sendLocation implements Runnable {
             if (MyState.isConnected == true)
                 MyState.sendLocation(tSocket, MSGTYPE);
         }
+    }
+}
+
+
+/**************************************************************************************************************************/
+/**********************************************Provide Instructions Class**************************************************/
+/**************************************************************************************************************************/
+
+
+class ProvideInstructions
+{
+
+    private String TurnInstruction[]=
+            {
+                    "NoTurn", //0
+                    "GoStraight",//1
+                    "TurnSlightRight",//2
+                    "TurnRight",//3
+                    "TurnSharpRight",//4
+                    "UTurn",//5
+                    "TurnSharpLeft",//6
+                    "TurnLeft",//7
+                    "TurnSlightLeft",//8
+                    "ReachViaLocation",//9
+                    "HeadOn",//10
+                    "EnterRoundAbout",//11
+                    "LeaveRoundAbout",//12
+                    "StayOnRoundAbout",//13
+                    "StartAtEndOfStreet",//14
+                    "ReachedYourDestination",//15
+                    "EnterAgainstAllowedDirection",//16
+                    "LeaveAgainstAllowedDirection",//17
+                    "InverseAccessRestrictionFlag",//18
+                    "AccessRestrictionFlag",//19
+                    "AccessRestrictionPenalty" };
+
+    private LinkedList<String> OsrmQueryData;
+    private JSONArray geometry_points;
+    private JSONArray instruction_points;
+    private JSONArray instructionOnIndex;
+
+
+    private float lastDistance;
+
+
+    private Integer index_geometry;
+    private Integer index_instruction;
+
+    private Context baseContext;
+
+    public ProvideInstructions(Context baseContext1)
+    {
+
+        baseContext = baseContext1;
+        OsrmQueryData = new LinkedList<String>() ;
+        geometry_points = null;
+        instruction_points = null;
+        instructionOnIndex=null;
+        index_instruction=-1;
+        lastDistance = -1.0f;
+
+    }
+
+    public void setOsrmQueryData(String QueryData)
+    {
+        OsrmQueryData.addLast(QueryData);
+    }
+
+    private void removeFirstOsrmData()
+    {
+        OsrmQueryData.removeFirst();
+        instruction_points=null;
+        geometry_points=null;
+        instructionOnIndex=null;
+        index_instruction=-1;
+    }
+
+    private Boolean getFirstOsrmData() throws JSONException
+    {
+        JSONObject osrmData = null;
+        osrmData = new JSONObject(OsrmQueryData.getFirst());
+
+        if (osrmData == null)
+            return false;
+
+        JSONArray osrmGeometryAndInstructions = null;
+
+        osrmGeometryAndInstructions = osrmData.getJSONArray("matchings");
+        instruction_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("instructions");
+        geometry_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("geometry");
+
+        index_instruction=0;
+
+        return true;
+    }
+
+
+
+    public void QueryInstructions(Location FollowersLoc) throws JSONException {
+
+        if (OsrmInstructionsCondition())
+        {
+            Boolean contin = true;
+
+
+            if (!GetNextInstructions())
+            {
+                return;
+            }
+
+
+            instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
+            int linked_instructions = (int) instruction_points.get(3);
+            int which_inst = Integer.parseInt(instruction_points.get(0).toString());
+
+
+            index_instruction++;
+
+            JSONArray latlon = null;
+            latlon = (JSONArray) geometry_points.get(linked_instructions);
+
+
+            Location locationA;
+            Location locationB = new Location("point B");
+
+            locationA = FollowersLoc;
+
+
+            locationB.setLatitude((Double) latlon.get(0));
+            locationB.setLongitude((Double) latlon.get(1));
+
+
+            lastDistance = locationA.distanceTo(locationB);
+
+            if ( lastDistance < 0.030 )
+            {
+                Toast.makeText(baseContext, TurnInstruction[which_inst], Toast.LENGTH_SHORT).show();
+                //index_instruction++;
+            }
+        }
+        else
+        {
+            return;
+        }
+
+    }
+
+    private Boolean GetNextInstructions() throws JSONException
+    {
+
+        if (lastDistance < 0.0f && instruction_points != null)
+        {
+            index_instruction = 0;
+            Boolean contin = true;
+            while (contin)
+            {
+
+
+                if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition())
+                {
+                    return false;
+                }
+
+                instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
+                int which_inst = Integer.parseInt(instruction_points.get(0).toString());
+
+                if (which_inst <=15)
+                {
+                    return true;
+                }
+                index_instruction++;
+
+            }
+        }
+        else if (lastDistance > 0.030f && instruction_points != null)
+        {
+            return true;
+        }
+
+        else if (lastDistance <= 0.030f && instruction_points != null)
+        {
+
+            //index_instruction++;
+            lastDistance = -1.0f;
+
+            Boolean contin = true;
+            while (contin)
+            {
+
+                if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition() )
+                {
+                    return false;
+                }
+
+                instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
+                int which_inst = Integer.parseInt(instruction_points.get(0).toString());
+
+                if (which_inst <=15)
+                {
+                    return true;
+                }
+
+                index_instruction++;
+
+            }
+        }
+        return false;
+    }
+
+    private Boolean OsrmInstructionsCondition() throws JSONException
+    {
+
+        if (instruction_points==null)
+        {
+
+            if (getFirstOsrmData())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+        else if ( instruction_points.length() >= index_instruction)
+        {
+
+            removeFirstOsrmData();
+
+            if (getFirstOsrmData())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        return true;
     }
 }

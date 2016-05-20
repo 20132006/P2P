@@ -153,7 +153,7 @@ public class SignUpActivity extends Activity {
 
         @Override
         protected void onPostExecute(String result) {
-            if (result == "Registration Success...") {
+            if (result.equals(" Registration Success...")) {
                 Toast.makeText(ctx, result, Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
                 intent.putExtra("arg1", Phone_number);

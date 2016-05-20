@@ -43,10 +43,10 @@ public class User
         {
             //serverAddr = InetAddress.getByName("192.168.1.103");140.254.203.132
             //serverAddr = InetAddress.getByName("192.168.1.102");
-            serverAddr = InetAddress.getByName("114.70.9.118"); //out of UNIST
+            //serverAddr = InetAddress.getByName("114.70.9.118"); //out of UNIST
             //serverAddr = InetAddress.getByName("10.20.16.131");//in UNIST
             //serverAddr = InetAddress.getByName("10.20.17.247");//My lab LINUX server in UNIST
-            //serverAddr = InetAddress.getByName("10.20.17.4");//My lab MAC server in UNIST
+            serverAddr = InetAddress.getByName("10.20.17.4");//My lab MAC server in UNIST
         }
         catch (UnknownHostException e)
         {
@@ -54,7 +54,7 @@ public class User
             isConnected = false;
         }
 
-        serverPort = 8006;
+        serverPort = 8002;
         debugMsg = "null";
         isConnected = false;
         isLeader = false;
