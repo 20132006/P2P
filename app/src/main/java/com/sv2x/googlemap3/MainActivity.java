@@ -596,6 +596,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             public void onLocationChanged(Location location) {
                 // cjoo: this is where we can specify what we want to do
                 //       when we update the location info.
+
+                Location previous_location = MyState.mLastLocation;
+                long previous_update = MyState.mLastUpdateTime;
+
                 MyState.mLastLocation = location;
                 MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
 
@@ -677,10 +681,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 }
 
 
-                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 15 ) {
+                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 45 ) {
                     sendLeadersLastLocations(Leader_every_10_15_second_lacations);
                     last_leaders_send_locations_time = MyState.mLastUpdateTime;
-                    Leader_every_10_15_second_lacations = "";
+                    Leader_every_10_15_second_lacations = previous_location.getLatitude() + ";" + previous_location.getLongitude() + ";" + previous_update + ";";
                 }
                 Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
             }
@@ -1671,7 +1675,7 @@ class   ProvideInstructions
             recentDistance = locationA.distanceTo(locationB);
 
 
-            if ( (lastDistance >= 0.0f && lastDistance < recentDistance) || (lastLocation!=null && locationB.distanceTo(lastLocation) > locationB.distanceTo(FollowersLoc) ) )
+            if ( lastLocation!=null && locationB.distanceTo(lastLocation) > locationB.distanceTo(FollowersLoc)  )
             {
                 GetNextStatus=true;
                 index_instruction++;
@@ -1708,7 +1712,7 @@ class   ProvideInstructions
                 String temp = instructionOnIndex.get(0).toString();
                 int which_inst = Integer.parseInt(temp);
 
-                if (which_inst <=15)
+                if (( which_inst>=2 && which_inst <=4 ) || ( 6>=which_inst && which_inst<=8 ))
                 {
                     GetNextStatus = false;
                     return true;
@@ -1736,7 +1740,7 @@ class   ProvideInstructions
                 instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
                 int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
 
-                if (which_inst <=15)
+                if ( ( which_inst>=2 && which_inst <=4 ) || ( 6>=which_inst && which_inst<=8 ) )
                 {
                     GetNextStatus = false;
                     return true;
