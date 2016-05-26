@@ -627,8 +627,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                     String Osrm_Data = null;
                     if (rxThread != null) {
                         Osrm_Data = rxThread.getLastReceivedOsrmData();
-                        if (Osrm_Data.indexOf("empty") < 0)
+                        if (Osrm_Data.indexOf("empty") < 0) {
+                            int from = Osrm_Data.indexOf(";");
+                            Osrm_Data = Osrm_Data.substring(from+1);
                             ShowingInstruction.setOsrmQueryData(Osrm_Data);
+                        }
                     }
 
                     try {
