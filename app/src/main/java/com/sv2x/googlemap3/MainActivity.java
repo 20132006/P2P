@@ -130,7 +130,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         String User_name = getIntent().getExtras().getString("arg2");
         // cjoo: initialization
         // cjoo: Get my ID & name
-        getIdName(Phone_number,User_name);
+        getIdName(Phone_number, User_name);
+
+        ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
+
+        inst_sign.setVisibility(View.INVISIBLE);
 
         // restore old variables if exists
         //updateValuesFromBundle(savedInstanceState);
@@ -200,7 +204,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         inputStreamReader = new InputStreamReader(fileInputStream);
         char[] data = new char[data_block];
         String final_data = "";
-        requesting_url = "http://10.20.17.173:5000/match?";
+        requesting_url = "http://10.20.17.242:5000/match?";
         int size;
 
         try {
@@ -594,34 +598,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 MyState.mLastLocation = location;
                 MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
 
-
-
-                /*
-
-                ShowingInstruction.setOsrmQueryData(Data6);
-                ShowingInstruction.setOsrmQueryData(Data5);
-                ShowingInstruction.setOsrmQueryData(Data4);
-                ShowingInstruction.setOsrmQueryData(Data3);
-                ShowingInstruction.setOsrmQueryData(Data2);
-                ShowingInstruction.setOsrmQueryData(Data1);
-
-                for (int i=0;i<latLat.length;i+=2) {
-                    Location tempLoc = null;
-
-                    tempLoc = new Location("Temp");
-
-                    tempLoc.setLatitude(latLat[i]);
-                    tempLoc.setLongitude(latLat[i + 1]);
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLat[i],latLat[i+1]), MyState.mCurrentCameraLevel));
-                    try {
-                        ShowingInstruction.QueryInstructions(tempLoc);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-                */
-                //double[] latLat = {35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573308,129.191601,35.573214,129.191585,35.573129,129.191566,35.573046,129.19154,35.572961,129.19151,35.572896,129.191502,35.572869,129.191609,35.572891,129.191722,35.572911,129.191827,35.57293,129.191931,35.572941,129.192038,35.572946,129.192146,35.572933,129.19225,35.5729,129.192454,35.57288,129.192553,35.572802,129.192945,35.572782,129.193042,35.572762,129.193138,35.572743,129.193235,35.572706,129.193315,35.572666,129.193393,35.572627,129.193471,35.572588,129.193565,35.572549,129.193659,35.572512,129.193752,35.572474,129.193849,35.572437,129.193946,35.5724,129.19405,35.572365,129.194155,35.57233,129.194259,35.572291,129.194361,35.572243,129.194458,35.572193,129.194552,35.572141,129.194646,35.572088,129.194739,35.572025,129.194836,35.571962,129.194933,35.571931,129.195056,35.571975,129.195179,35.572095,129.195217,35.572226,129.195169,35.572265,129.194943,35.572333,129.194723,35.572405,129.194546,35.572459,129.194447,35.572514,129.194345,35.572573,129.194214,35.572629,129.194074,35.572686,129.193919,35.572743,129.193763,35.572793,129.193535,35.572837,129.193417,35.572882,129.193278,35.572928,129.193103,35.572974,129.192929,35.57302,129.192755,35.573066,129.19258,35.573131,129.192452,35.573212,129.192409,35.573319,129.19232,35.573382,129.192269};
                 if (!MyState.isLeader && MyState.mySpaceId!="")
                 {
                     String Osrm_Data = null;
@@ -644,7 +620,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
                         ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
 
-                        inst_sign.setVisibility(View.INVISIBLE);
+                        //inst_sign.setVisibility(View.INVISIBLE);
 
                         if (instruction.indexOf("Left") >= 0)
                         {
@@ -656,7 +632,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                             inst_sign.setBackgroundResource(R.drawable.turnright);
                             inst_sign.setVisibility(View.VISIBLE);
                         }
-                        else if (instruction.indexOf("Goraight") >= 0)
+                        else if (instruction.indexOf("GoStraight") >= 0)
                         {
                             inst_sign.setBackgroundResource(R.drawable.gostraight);
                             inst_sign.setVisibility(View.VISIBLE);
@@ -666,6 +642,30 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                             inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
                             inst_sign.setVisibility(View.VISIBLE);
                         }
+                        else if (instruction.indexOf("UTurn") >=0 )
+                        {
+                            inst_sign.setBackgroundResource(R.drawable.u_turn);
+                            inst_sign.setVisibility(View.VISIBLE);
+                        }
+                        else if (instruction.indexOf("ReachViaLocation") >=0 )
+                        {
+                            inst_sign.setBackgroundResource(R.drawable.reach_via_location);
+                            inst_sign.setVisibility(View.VISIBLE);
+                        }
+                        else if (instruction.indexOf("NoTurn") >=0 )
+                        {
+                            inst_sign.setBackgroundResource(R.drawable.no_turn);
+                            inst_sign.setVisibility(View.VISIBLE);
+                        }
+                        else if (instruction.indexOf("HeadOn") >=0 )
+                        {
+                            inst_sign.setBackgroundResource(R.drawable.head_on);
+                            inst_sign.setVisibility(View.VISIBLE);
+                        }
+                        else{
+                            inst_sign.setVisibility(View.INVISIBLE);
+                        }
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -676,18 +676,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
 
                 if ( outputStreamWriter != null ) {
-                    //first_time=true;
+
                     write_data(MyState.mLastLocation.getLatitude() + ";" + MyState.mLastLocation.getLongitude() + ";" + MyState.id.toString() + ";" + MyState.mLastUpdateTime);
-                    //write_data("35.573023;129.192266;1424684612;ggg");
-                    //write_data("35.572164;129.203585;1424684616;ggg");
                 }
 
-                /*if (MyState.activeToUseLeadersLocations == true) {
-
-                    startSendingLeadersLocatons();
-                    MyState.activeToUseLeadersLocations = false;
-
-                }*/
 
                 if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 15 ) {
                     sendLeadersLastLocations(Leader_every_10_15_second_lacations);
@@ -1581,7 +1573,6 @@ class   ProvideInstructions
 
     Boolean GetNextStatus;
 
-    private Integer index_geometry;
     private Integer index_instruction;
 
     private Context baseContext;
@@ -1593,10 +1584,10 @@ class   ProvideInstructions
         OsrmQueryData = new LinkedList<String>() ;
         geometry_points = null;
         instruction_points = null;
-        instructionOnIndex=null;
-        index_instruction=-1;
+        instructionOnIndex = null;
+        index_instruction = -1;
         recentDistance = -1.0f;
-        GetNextStatus=true;
+        GetNextStatus = true;
 
     }
 
@@ -1605,20 +1596,16 @@ class   ProvideInstructions
         OsrmQueryData.addLast(QueryData);
     }
 
-    private void removeFirstOsrmData()
-    {
-        OsrmQueryData.removeFirst();
-        instruction_points=null;
-        geometry_points=null;
-        instructionOnIndex=null;
-        index_instruction=-1;
-    }
-
     private Boolean getFirstOsrmData() throws JSONException
     {
+
+        index_instruction=0;
+
         JSONObject osrmData = null;
+
         if (OsrmQueryData.isEmpty())
             return false;
+
         String OsrqData = OsrmQueryData.getFirst();
         OsrmQueryData.removeFirst();
 
@@ -1636,7 +1623,6 @@ class   ProvideInstructions
         instruction_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("instructions");
         geometry_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("geometry");
 
-        index_instruction=0;
 
         return true;
     }
@@ -1647,8 +1633,6 @@ class   ProvideInstructions
 
         if (OsrmInstructionsCondition())
         {
-            Boolean contin = true;
-
 
             if (GetNextStatus && !GetNextInstructions())
             {
@@ -1680,19 +1664,18 @@ class   ProvideInstructions
             recentDistance = locationA.distanceTo(locationB);
 
 
-            if (lastDistance>=0.0f && lastDistance < recentDistance && recentDistance-lastDistance >= 3.0f)
+            if (recentDistance>=0.0f && lastDistance >= 0.0f && lastDistance < recentDistance && recentDistance-lastDistance >= 3.0f)
             {
                 GetNextStatus=true;
                 index_instruction++;
                 return QueryInstructions(FollowersLoc);
             }
 
-            //if ( recentDistance < 30.0f)
-            //{
-                Toast.makeText(baseContext, TurnInstruction[which_inst]+" "+recentDistance, Toast.LENGTH_SHORT).show();
+            if ( recentDistance <= 30.0f )
+            {
                 return TurnInstruction[which_inst];
-                //index_instruction++;
-            //}
+            }
+            Toast.makeText(baseContext, TurnInstruction[which_inst]+" "+recentDistance, Toast.LENGTH_SHORT).show();
         }
 
         return "";
@@ -1704,27 +1687,23 @@ class   ProvideInstructions
         if (recentDistance < 0.0f && instruction_points != null)
         {
             index_instruction = 0;
-            Boolean contin = true;
-            while (contin)
+            while (true)
             {
-
-
                 if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition())
                 {
                     return false;
                 }
 
                 instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
-                String temp = instructionOnIndex.get(0).toString();
-                int which_inst = Integer.parseInt(temp);
+                int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
 
                 if (which_inst <=15)
                 {
                     GetNextStatus = false;
                     return true;
                 }
-                index_instruction++;
 
+                index_instruction++;
             }
         }
 
@@ -1734,8 +1713,7 @@ class   ProvideInstructions
             //index_instruction++;
             recentDistance = -1.0f;
 
-            Boolean contin = true;
-            while (contin)
+            while (true)
             {
 
                 if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition() )
