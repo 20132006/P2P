@@ -72,12 +72,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private static boolean wifiConnected = false;   // state of WiFi
     private static boolean mobileConnected = false; // state of LTE/mobile
     public LatLng mLatLng;      // variable for (latitude, longitude)
-    ////////////////////////written by me start/////////////////////////////\
-    ListView listView;
+    ////////////////////////written by me start/////////////////////////////
+
     MainActivity activity;
-    boolean place_points=false;
-    boolean geometry=false;
-    boolean nearest=false;
     String Message;
 
     int data_block = 100;
@@ -585,103 +582,37 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 .build();
     }
     // cjoo: periodic location updates
-    protected void createLocationRequest() {
+    protected void createLocationRequest()
+    {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(5000);
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         // cjoo: the following is different from previous LocationListener
-        mLocationListener = new com.google.android.gms.location.LocationListener() {
+        mLocationListener = new com.google.android.gms.location.LocationListener()
+        {
             @Override
-            public void onLocationChanged(Location location) {
+            public void onLocationChanged(Location location)
+            {
                 // cjoo: this is where we can specify what we want to do
                 //       when we update the location info.
 
                 Location previous_location = MyState.mLastLocation;
                 long previous_update = MyState.mLastUpdateTime;
 
-                MyState.mLastLocation = location;
-                MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
-
-                if (!MyState.isLeader && MyState.mySpaceId!="")
-                {
-                    String Osrm_Data = null;
-
-                    if (rxThread != null) {
-                        Osrm_Data = rxThread.getLastReceivedOsrmData();
-                        if (Osrm_Data.indexOf("empty") < 0) {
-                            int from = Osrm_Data.indexOf(";");
-                            Osrm_Data = Osrm_Data.substring(from+1);
-                            ShowingInstruction.setOsrmQueryData(Osrm_Data);
-                        }
-                    }
-
-                    try {
-
-                        ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
-
-                        String instruction = ShowingInstruction.QueryInstructions(location);
-
-                        if (instruction.indexOf("Left") >= 0)
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.turnleft);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("Right") >= 0)
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.turnright);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("GoStraight") >= 0)
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.gostraight);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("RoundAbout") >=0 )
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("UTurn") >=0 )
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.u_turn);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("ReachViaLocation") >=0 )
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.reach_via_location);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("NoTurn") >=0 )
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.no_turn);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else if (instruction.indexOf("HeadOn") >=0 )
-                        {
-                            inst_sign.setBackgroundResource(R.drawable.head_on);
-                            inst_sign.setVisibility(View.VISIBLE);
-                        }
-                        else{
-                            inst_sign.setVisibility(View.INVISIBLE);
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+                showInstruction(location);
 
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
                 //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
 
-                if ( outputStreamWriter != null ) {
-
+                if ( outputStreamWriter != null )
+                {
                     write_data(MyState.mLastLocation.getLatitude() + ";" + MyState.mLastLocation.getLongitude() + ";" + MyState.id.toString() + ";" + MyState.mLastUpdateTime);
                 }
 
 
-                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 30 ) {
+                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 30 )
+                {
                     sendLeadersLastLocations(Leader_every_10_15_second_lacations);
                     last_leaders_send_locations_time = MyState.mLastUpdateTime;
                     Leader_every_10_15_second_lacations = previous_location.getLatitude() + ";" + previous_location.getLongitude() + ";" + previous_update + ";";
@@ -689,7 +620,81 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
             }
         };
+    }
 
+    public void showInstruction(Location location)
+    {
+        MyState.mLastLocation = location;
+        MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
+
+        if (!MyState.isLeader && MyState.mySpaceId!="")
+        {
+            String Osrm_Data = null;
+
+            if (rxThread != null) {
+                Osrm_Data = rxThread.getLastReceivedOsrmData();
+                if (Osrm_Data.indexOf("empty") < 0) {
+                    int from = Osrm_Data.indexOf(";");
+                    Osrm_Data = Osrm_Data.substring(from+1);
+                    ShowingInstruction.setOsrmQueryData(Osrm_Data);
+                }
+            }
+
+            try {
+
+                ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
+
+                String instruction = ShowingInstruction.QueryInstructions(location);
+
+                if (instruction.indexOf("Left") >= 0)
+                {
+                    inst_sign.setBackgroundResource(R.drawable.turnleft);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("Right") >= 0)
+                {
+                    inst_sign.setBackgroundResource(R.drawable.turnright);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("GoStraight") >= 0)
+                {
+                    inst_sign.setBackgroundResource(R.drawable.gostraight);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("RoundAbout") >=0 )
+                {
+                    inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("UTurn") >=0 )
+                {
+                    inst_sign.setBackgroundResource(R.drawable.u_turn);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("ReachViaLocation") >=0 )
+                {
+                    inst_sign.setBackgroundResource(R.drawable.reach_via_location);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("NoTurn") >=0 )
+                {
+                    inst_sign.setBackgroundResource(R.drawable.no_turn);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else if (instruction.indexOf("HeadOn") >=0 )
+                {
+                    inst_sign.setBackgroundResource(R.drawable.head_on);
+                    inst_sign.setVisibility(View.VISIBLE);
+                }
+                else{
+                    inst_sign.setVisibility(View.INVISIBLE);
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     protected void startLocationUpdates() {
@@ -1035,759 +1040,4 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         builder.show();
     }
 
-}
-/**************************************************************************************************************************/
-/*****************************************************Receive Thread*******************************************************/
-/**************************************************************************************************************************/
-
-class Receive implements Runnable {
-
-    JSONArray array_of_points;
-    JSONObject jsonObject = null;
-    String followersID;
-    String LeadersID;
-    GoogleMap map;
-    MainActivity activity;
-    User MyState;
-    Users uList;
-    String spaceOwner;
-    DatagramSocket rSocket = null;
-    DatagramPacket rPacket = null;
-    byte[] rMessage = new byte[12000];
-    thread_sendLocation updateThread;
-    //thread_sendLeadersLocations send_leaders_locations;
-    Thread wrapUpdateThread;
-    private volatile boolean stopRequested;
-    String complete_msg;
-    private LinkedList<String> OsrmQueryData;
-
-
-    public String getLastReceivedOsrmData()
-    {
-        if (OsrmQueryData.isEmpty())
-            return "empty";
-        String temp =OsrmQueryData.getFirst();
-        OsrmQueryData.removeFirst();
-        return temp;
-    }
-
-    public void setLastReceivedOsrmData(String lastReceivedOsrmData) {
-        OsrmQueryData.addLast(lastReceivedOsrmData);
-    }
-
-    String LastReceivedOsrmData;
-
-
-
-    public Receive(DatagramSocket sck, User state, Users uList, MainActivity myActivity) {
-        this.rSocket = sck;
-        this.MyState = state;
-        this.uList = uList;
-        updateThread = null;
-        stopRequested = false;
-        activity = myActivity;
-        //((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        map = ((SupportMapFragment) activity.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        complete_msg="";
-        OsrmQueryData = new LinkedList<String>() ;
-    }
-
-    public User getUser()
-    {
-        return MyState;
-    }
-
-    public void requestStop() {
-        stopRequested = true;
-        if (updateThread != null) {
-            updateThread.requestStop();
-        }
-
-    }
-
-    public void run() {
-        while (stopRequested == false) {
-            try {// cjoo: debug
-                rPacket = new DatagramPacket(rMessage, rMessage.length);
-                rSocket.receive(rPacket);
-                handlePacket(rPacket);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void handlePacket(DatagramPacket pkt) {
-        String msg;
-        int index;
-        String msgType;
-
-        msg = new String(rPacket.getData(), 0, pkt.getLength());
-        //MyState.debugMsg = msg;
-        //MyState.mySpaceId = new String(recvMsg, 0, pkt.getLength());
-        //MyState.debugMsg = MyState.mySpaceId;
-
-        index = msg.indexOf(";");
-        if (index <= 0) {
-            return;
-        } else {
-            msgType = msg.substring(0, index);
-            msg = msg.substring(index + 1, msg.length());
-
-        }
-        // now received something, which means connectivity
-        // if connected (to the Server), then start sending location info.
-        if (updateThread == null || wrapUpdateThread.getState() == Thread.State.TERMINATED) {
-            MyState.isSendingUpates = true;
-            updateThread = new thread_sendLocation(MyState, rSocket);
-            wrapUpdateThread = new Thread(updateThread);
-            wrapUpdateThread.start();
-        }
-
-
-        if (msgType.equals("New User OK")) {  // response to New User registration
-            // do nothing
-        } else if (msgType.equals("Create Space OK")) {  // response to Create Space
-            // remember space id
-
-            MyState.isLeader = true;
-
-        } else if (msgType.equals("Join Space OK")) {  // response to Join Space
-            // remember space id
-            if (MyState.isLeader == true)
-            {
-                MyState.isLeader=false;
-                MyState.mLeardersLastUpdateTime = 0;
-                MyState.firstLeadersMark = true;
-                MyState.mLeadersLastLatLng = null;
-            }
-        } else if (msgType.equals("Location Update")) {  // periodic info.
-            // location & user id
-            updateUserInfo(msg, uList);
-        }else if (msgType.equals(("Leader's Locations"))) {
-
-            updateLeadersLocation(msg, uList);
-
-        }
-
-
-    }
-
-
-
-
-    public void updateLeadersLocation(String message, Users uList)
-    {
-
-        int index;
-        User follower;
-        String messageState;
-        HttpAsyncTask httpAsyncTask;
-
-
-        // parsing & retrieving info
-        index = message.indexOf(";");
-
-        if (index <= 0) {
-            return;
-        }
-
-        else {
-            followersID = message.substring(0, index);
-            message = message.substring(index + 1, message.length());
-        }
-
-        // if non-existing user, add it
-        follower = uList.findUser(followersID);
-
-
-        if (follower == null) {
-            follower = new User();
-            follower.id = followersID;
-            uList.addUser(follower);
-        }
-
-        follower.LeaderLocations = message;
-        follower.activeToUseLeadersLocations = true;
-
-        index = message.indexOf(";");
-        if (index < 0){
-            return;
-        }
-        else
-        {
-            messageState = message.substring(0,index);
-            message = message.substring( index+1 );
-        }
-
-        if (messageState.equals("finish"))
-        {
-
-            int until;
-            until = message.indexOf("*****");
-            complete_msg += message.substring(0,until);
-
-            setLastReceivedOsrmData(complete_msg);
-
-            httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask();
-            httpAsyncTask.execute(complete_msg);
-
-
-            complete_msg="";
-        }
-        else if (messageState.equals("to be continue"))
-        {
-            int until;
-            until = message.indexOf("*****");
-            complete_msg += message.substring(0,until);;
-        }
-
-
-    }
-
-
-    class HttpAsyncTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... arg) {
-
-            return arg[0];
-
-        }
-
-        // onPostExecute displays the results of the AsyncTask.
-
-        protected void onPostExecute(String message)
-        {
-            if (message.indexOf("geometry") < 0)
-            {
-                actual_locations(message);
-            }
-            else
-            {
-                matched_locations(message);
-            }
-        }
-
-        void matched_locations(String message)
-        {
-            int index;
-            String LeadersID;
-
-            index = message.indexOf(";");
-            if (index < 0) {
-                return;
-            } else {
-                LeadersID = message.substring(0, index);
-                message = message.substring(index + 1);
-            }
-
-            try {
-                jsonObject = new JSONObject(message);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            JSONArray jsonArray = null;
-            if (jsonObject!=null) {
-                try {
-                    jsonArray = (JSONArray) jsonObject.get(/*"matched_points"*/ "matchings");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            JSONObject jsonObject2 = null;
-            if (jsonArray!=null) {
-                try {
-                    jsonObject2 = (JSONObject) jsonArray.get(/*"matched_points"*/ 0);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            array_of_points = null;
-            if (jsonObject2!=null) {
-                try {
-                    array_of_points = (JSONArray) jsonObject2.get("geometry");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            LatLng location = null;
-            double lat = 0., lgt=0.;
-
-            for (int i = 0; i < array_of_points.length(); i++) {
-
-                try {
-                    lat = (double) ((JSONArray) array_of_points.get(i)).get(0);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    lgt = (double) ((JSONArray) array_of_points.get(i)).get(1);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                location = new LatLng(lat, lgt);
-                //if (MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME)) {
-                if (MyState.isLeader == false) {
-                    if (MyState.firstLeadersMark == true) {
-                        map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                        MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                        MyState.mLeadersLastLatLng = location;
-                        MyState.firstLeadersMark = false;
-                    } else {
-                        PolylineOptions line = new PolylineOptions()
-                                .add(MyState.mLeadersLastLatLng)
-                                .add(location);
-                        map.addPolyline(line);
-                        MyState.mLeadersLastLatLng = location;
-                    }
-
-                    if (MyState.LeadersMark != null) {
-
-                        MyState.LeadersMark.remove();
-                        MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                    }
-                }
-                //}
-            }
-            //MarkerOptions marker = new MarkerOptions().position(location);
-
-           // map.addMarker(marker);
-
-        }
-        void actual_locations(String message)
-        {
-            int index;
-            String LeadersID;
-            index = message.indexOf(";");
-            if (index < 0) {
-                return;
-            } else {
-                LeadersID = message.substring(0, index);
-                message = message.substring(index + 1);
-            }
-            while (message.length() > 0) {
-                LatLng location;
-                String lat, lgt, update_TIME;
-
-                index = message.indexOf(";");
-                if (index < 0) {
-                    return;
-                } else {
-                    lat = message.substring(0, index);
-                    message = message.substring(index + 1);
-                }
-
-                index = message.indexOf(";");
-                if (index < 0) {
-                    return;
-                } else {
-                    lgt = message.substring(0, index);
-                    message = message.substring(index + 1);
-                }
-
-                index = message.indexOf(";");
-                if (index < 0) {
-                    return;
-                } else {
-                    update_TIME = message.substring(0, index);
-                    message = message.substring(index + 1);
-                }
-
-                location = new LatLng(Double.parseDouble(lat), Double.parseDouble(lgt));
-                if (MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME)) {
-                    if (MyState.isLeader == false) {
-                        if (MyState.firstLeadersMark == true) {
-                            map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                            MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                            MyState.mLeadersLastLatLng = location;
-                            MyState.firstLeadersMark = false;
-                        } else {
-                            PolylineOptions line = new PolylineOptions()
-                                    .add(MyState.mLeadersLastLatLng)
-                                    .add(location);
-                            map.addPolyline(line);
-                            MyState.mLeadersLastLatLng = location;
-                        }
-
-                        if (MyState.LeadersMark != null) {
-
-                            MyState.LeadersMark.remove();
-                            MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    public void updateUserInfo(String msg, Users uList) {
-        String text;
-        int index;
-        User user;
-        String clientId;
-        String cLatitude;
-        String cLongitude;
-        String cLastUpdateTime;
-
-        spaceOwner = "";
-        // parsing & retrieving info
-        text = msg;
-        while (text.length() > 10) {
-            index = text.indexOf(";");
-            if (index <= 0) {
-                return;
-            } else {
-                clientId = text.substring(0, index);
-                text = text.substring(index + 1, text.length());
-            }
-
-            // the first client is the space owner
-            if (spaceOwner.equals("")) {
-                spaceOwner = clientId;
-            }
-
-            // if non-existing user, add it
-            user = uList.findUser(clientId);
-            if (user == null) {
-                user = new User();
-                user.id = clientId;
-                uList.addUser(user);
-            }
-
-            index = text.indexOf(";");
-            if (index <= 0) {
-                return;
-            } else {
-                cLatitude = text.substring(0, index);
-                text = text.substring(index + 1, text.length());
-            }
-            index = text.indexOf(";");
-            if (index <= 0) {
-                return;
-            } else {
-                cLongitude = text.substring(0, index);
-                text = text.substring(index + 1, text.length());
-            }
-            index = text.indexOf(";");
-            if (index <= 0) {
-                return;
-            } else {
-                cLastUpdateTime = text.substring(0, index);
-                text = text.substring(index + 1, text.length());
-            }
-            user.mLatLng = new LatLng(Double.parseDouble(cLatitude), Double.parseDouble(cLongitude));
-            user.mLastUpdateTime = Long.parseLong(cLastUpdateTime);
-        }
-    }
-
-}
-
-
-/**************************************************************************************************************************/
-/*****************************************************Send Thread**********************************************************/
-/**************************************************************************************************************************/
-
-
-class thread_sendLocation implements Runnable {
-    User MyState;
-    DatagramSocket tSocket;
-    String MSGTYPE;
-    private volatile boolean stopRequested;
-
-    public thread_sendLocation(User state, DatagramSocket skt) {
-        this.MyState = state;
-        this.tSocket = skt;
-        this.MSGTYPE = "Location";
-        stopRequested = false;
-    }
-
-
-    public void requestStop() {
-        stopRequested = true;
-    }
-
-    public void run() {
-        while (stopRequested == false) {
-            try {
-                Thread.sleep(MyState.updateInterval * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            // Caution: sendLocation should come after sleep
-            //          otherwise, the app will terminate.
-            //          (it seems to need some delay for TX)
-            if (MyState.isConnected == true)
-                MyState.sendLocation(tSocket, MSGTYPE);
-        }
-    }
-}
-
-
-/**************************************************************************************************************************/
-/**********************************************Provide Instructions Class**************************************************/
-/**************************************************************************************************************************/
-
-
-class   ProvideInstructions
-{
-
-    private String TurnInstruction[]=
-            {
-                    "NoTurn", //0
-                    "GoStraight",//1
-                    "TurnSlightRight",//2
-                    "TurnRight",//3
-                    "TurnSharpRight",//4
-                    "UTurn",//5
-                    "TurnSharpLeft",//6
-                    "TurnLeft",//7
-                    "TurnSlightLeft",//8
-                    "ReachViaLocation",//9
-                    "HeadOn",//10
-                    "EnterRoundAbout",//11
-                    "LeaveRoundAbout",//12
-                    "StayOnRoundAbout",//13
-                    "StartAtEndOfStreet",//14
-                    "ReachedYourDestination",//15
-                    "EnterAgainstAllowedDirection",//16
-                    "LeaveAgainstAllowedDirection",//17
-                    "InverseAccessRestrictionFlag",//18
-                    "AccessRestrictionFlag",//19
-                    "AccessRestrictionPenalty" };
-
-    private LinkedList<String> OsrmQueryData;
-    private JSONArray geometry_points;
-    private JSONArray instruction_points;
-    private JSONArray instructionOnIndex;
-
-
-    private float recentDistance;
-
-
-    Location lastLocation = null;
-
-
-    Boolean GetNextStatus;
-
-    private Integer index_geometry;
-    private Integer index_instruction;
-
-    private Context baseContext;
-
-    public ProvideInstructions(Context baseContext1)
-    {
-
-        baseContext = baseContext1;
-        OsrmQueryData = new LinkedList<String>() ;
-        geometry_points = null;
-        instruction_points = null;
-        instructionOnIndex=null;
-        index_instruction=-1;
-        recentDistance = -1.0f;
-        GetNextStatus=true;
-
-    }
-
-    public void setOsrmQueryData(String QueryData)
-    {
-        OsrmQueryData.addLast(QueryData);
-    }
-
-    private void removeFirstOsrmData()
-    {
-        OsrmQueryData.removeFirst();
-        instruction_points=null;
-        geometry_points=null;
-        instructionOnIndex=null;
-        index_instruction=-1;
-    }
-
-    private Boolean getFirstOsrmData() throws JSONException
-    {
-        JSONObject osrmData = null;
-        if (OsrmQueryData.isEmpty())
-            return false;
-        String OsrqData = OsrmQueryData.getFirst();
-        OsrmQueryData.removeFirst();
-
-        if (OsrqData.indexOf("instructions")<=0)
-            return false;
-
-        osrmData = new JSONObject(OsrqData);
-
-        if (osrmData == null)
-            return false;
-
-        JSONArray osrmGeometryAndInstructions = null;
-
-        osrmGeometryAndInstructions = osrmData.getJSONArray("matchings");
-        instruction_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("instructions");
-        geometry_points = (JSONArray) ((JSONObject)(osrmGeometryAndInstructions.get(0))).get("geometry");
-
-        index_instruction=0;
-
-        return true;
-    }
-
-
-
-    public String QueryInstructions(Location FollowersLoc) throws JSONException {
-
-        if (OsrmInstructionsCondition())
-        {
-            Boolean contin = true;
-
-
-            if (GetNextStatus && !GetNextInstructions())
-            {
-                return "";
-            }
-
-
-            instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
-            int linked_instructions = (int) instructionOnIndex.get(3);
-            int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
-
-
-            JSONArray latlon = null;
-            latlon = (JSONArray) geometry_points.get(linked_instructions);
-
-
-            Location locationA;
-            Location locationB = new Location("point B");
-
-            locationA = FollowersLoc;
-
-
-            locationB.setLatitude((Double) latlon.get(0));
-            locationB.setLongitude((Double) latlon.get(1));
-
-
-            float lastDistance = recentDistance;
-
-            recentDistance = locationA.distanceTo(locationB);
-
-
-            if ( lastLocation!=null && locationB.distanceTo(lastLocation) < locationB.distanceTo(FollowersLoc)  )
-            {
-                GetNextStatus=true;
-                index_instruction++;
-                return QueryInstructions(FollowersLoc);
-            }
-
-
-            if ( lastLocation == null || (lastLocation != null && FollowersLoc.distanceTo(lastLocation) > 5.0f) )
-                lastLocation = FollowersLoc;
-
-            Toast.makeText(baseContext, TurnInstruction[which_inst]+" "+recentDistance, Toast.LENGTH_SHORT).show();
-            //if (recentDistance <= 30.0f)
-                return TurnInstruction[which_inst];
-            //return "";
-
-        }
-        return "";
-    }
-
-    private Boolean GetNextInstructions() throws JSONException
-    {
-
-        if (recentDistance < 0.0f && instruction_points != null)
-        {
-            index_instruction = 0;
-            Boolean contin = true;
-            while (contin)
-            {
-
-
-                if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition())
-                {
-                    return false;
-                }
-
-                instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
-                String temp = instructionOnIndex.get(0).toString();
-                int which_inst = Integer.parseInt(temp);
-
-                if (which_inst<=15)//(( 2<=which_inst && which_inst <=4 ) || ( 6<=which_inst && which_inst<=8 ))
-                {
-                    GetNextStatus = false;
-                    return true;
-                }
-                index_instruction++;
-
-            }
-        }
-
-        else if (recentDistance >= 0.0f && instruction_points != null)
-        {
-
-            //index_instruction++;
-            recentDistance = -1.0f;
-
-            Boolean contin = true;
-            while (contin)
-            {
-
-                if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition() )
-                {
-                    return false;
-                }
-
-                instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
-                int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
-
-                if (which_inst<=15)//( ( 2<=which_inst && which_inst <=4 ) || ( 6<=which_inst && which_inst<=8 ) )
-                {
-                    GetNextStatus = false;
-                    return true;
-                }
-
-                index_instruction++;
-
-            }
-        }
-        return false;
-    }
-
-    private Boolean OsrmInstructionsCondition() throws JSONException
-    {
-
-        if (instruction_points==null)
-        {
-
-            if (getFirstOsrmData())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
-        else if ( instruction_points.length() <= index_instruction)
-        {
-
-            //removeFirstOsrmData();
-
-            if (getFirstOsrmData())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
-
-        return true;
-    }
 }
