@@ -9,10 +9,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,7 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -30,16 +27,15 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,8 +50,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.concurrent.ForkJoinWorkerThread;
 
 
 // cjoo: we need the implementations,
@@ -87,11 +81,12 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     long last_leaders_send_locations_time;
     boolean amILearder=false;
+    boolean first_time=true;
+
 
     boolean file_created = false;
 
     JSONArray array_of_points;
-    JSONArray nearest_point;
     //HttpAsyncTask httpAsyncTask;
     String requesting_url;
 
@@ -113,15 +108,12 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private WifiManager                     wifiManager;
     private WifiInfo                        wifiInfo;
 
-
-    private int interval_send_leaders_locations = 15000; // 15 seconds by default, can be changed later
-    private Handler mHandler;
     private ProvideInstructions ShowingInstruction;
-
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         String Phone_number = getIntent().getExtras().getString("arg1");
@@ -131,6 +123,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         getIdName(Phone_number, User_name);
 
         ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
+
 
         inst_sign.setVisibility(View.INVISIBLE);
 
@@ -158,7 +151,33 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         mGoogleApiClient.connect(); // start "onConnected()" for map
         //httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask(this);
         activity=this;
+
     }
+
+    protected static double bearing(double lat1, double lon1, double lat2, double lon2){
+
+        double longDiff= lon2-lon1;
+
+        double y = Math.sin(Math.toRadians(longDiff))*Math.cos(Math.toRadians(lat2));
+
+        double x = Math.cos(Math.toRadians(lat1))*Math.sin(Math.toRadians(lat2))-Math.sin(Math.toRadians(lat1))*Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(longDiff));
+
+        return ( Math.toDegrees(Math.atan2(y, x)) + 360 ) % 360;
+    }
+
+    private void initCamera(Location location, double angle)
+    {
+        CameraPosition position = CameraPosition.builder()
+                .target(new LatLng(location.getLatitude(), location.getLongitude()))
+                .zoom(18)
+                .bearing((float) angle)
+                .tilt(90.0f)
+                .build();
+
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(position), null);
+        //map.getUiSettings().setZoomControlsEnabled(true);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)  {
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
@@ -424,24 +443,30 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             FileHandling_Sharing();
 
         }
-        else if (id == R.id.connect_server) {
+        else if (id == R.id.connect_server)
+        {
             stopServerConnection();
             startServerConnection();
             text = MyState.myAddr.toString();
             text = "Connected: " + text.subSequence(1, text.length());
             showToast(text.toString());
-            if (file_created == false) {
+            if (file_created == false)
+            {
                 create_file();
                 file_created = true;
             }
             return true;
         }
-        else if (id == R.id.create_space) {
-            if (MyState.isConnected == true) {
+        else if (id == R.id.create_space)
+        {
+            if (MyState.isConnected == true)
+            {
                 sendSpaceCreateRequest();
                 text = "Space create requested";
                 showToast(text.toString());
-            } else {
+            }
+            else
+            {
                 text = "No Internet Connection";
                 toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
                 toast.show();
@@ -451,15 +476,19 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             //////////////////////////////////
             return true;
         }
-        else if (id == R.id.join_space) {
-            if (MyState.isConnected == true) {
+        else if (id == R.id.join_space)
+        {
+            if (MyState.isConnected == true)
+            {
 
                 sendSpaceJoinRequest();
                 text = "Join requested";
                 showToast(text.toString());
                 //stopSendingLeadersLocatons();
 
-            } else {
+            }
+            else
+            {
                 text = "No Internet Connection";
                 toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
                 toast.show();
@@ -550,9 +579,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     ///cjoo
 
     @Override
-    public void onConnected(Bundle bundle) {
+    public void onConnected(Bundle bundle)
+    {
         MyState.mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (MyState.mLastLocation != null) {
+        if (MyState.mLastLocation != null)
+        {
             mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
             //cjoo: the following shows the location (latitude) info. on screen;
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
@@ -574,7 +605,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
 
     // cjoo: Need to use map and location services
-    protected synchronized void buildGoogleApiClient() {
+    protected synchronized void buildGoogleApiClient()
+    {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -597,6 +629,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 // cjoo: this is where we can specify what we want to do
                 //       when we update the location info.
 
+                if (MyState.mLastLocation != null)
+                {
+                    initCamera(location,bearing(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude(),location.getLatitude(),location.getLongitude()));
+                }
+
                 Location previous_location = MyState.mLastLocation;
                 long previous_update = MyState.mLastUpdateTime;
 
@@ -611,13 +648,18 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 }
 
 
-                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 30 )
+                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 15 )
                 {
                     sendLeadersLastLocations(Leader_every_10_15_second_lacations);
                     last_leaders_send_locations_time = MyState.mLastUpdateTime;
                     Leader_every_10_15_second_lacations = previous_location.getLatitude() + ";" + previous_location.getLongitude() + ";" + previous_update + ";";
                 }
-                Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
+
+                if (amILearder)
+                {
+                    Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
+                }
+
             }
         };
     }
@@ -626,102 +668,125 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     {
         MyState.mLastLocation = location;
         MyState.mLastUpdateTime = System.currentTimeMillis()/1000;
+        EditText distanceBTW = (EditText) findViewById(R.id.distance);
 
         if (!MyState.isLeader && MyState.mySpaceId!="")
         {
             String Osrm_Data = null;
-
-            if (rxThread != null) {
+            if (rxThread != null)
+            {
                 Osrm_Data = rxThread.getLastReceivedOsrmData();
-                if (Osrm_Data.indexOf("empty") < 0) {
+                if (Osrm_Data.indexOf("empty") < 0)
+                {
                     int from = Osrm_Data.indexOf(";");
                     Osrm_Data = Osrm_Data.substring(from+1);
                     ShowingInstruction.setOsrmQueryData(Osrm_Data);
                 }
             }
 
-            try {
-
+            try
+            {
                 ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
 
                 String instruction = ShowingInstruction.QueryInstructions(location);
+                String distance = null;
+
+                if (instruction.indexOf(",")>=0) {
+                    distance = instruction.substring(instruction.indexOf(",") + 1);
+                }
 
                 if (instruction.indexOf("Left") >= 0)
                 {
                     inst_sign.setBackgroundResource(R.drawable.turnleft);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("Right") >= 0)
                 {
                     inst_sign.setBackgroundResource(R.drawable.turnright);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("GoStraight") >= 0)
                 {
                     inst_sign.setBackgroundResource(R.drawable.gostraight);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("RoundAbout") >=0 )
                 {
                     inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("UTurn") >=0 )
                 {
                     inst_sign.setBackgroundResource(R.drawable.u_turn);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("ReachViaLocation") >=0 )
                 {
                     inst_sign.setBackgroundResource(R.drawable.reach_via_location);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("NoTurn") >=0 )
                 {
                     inst_sign.setBackgroundResource(R.drawable.no_turn);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else if (instruction.indexOf("HeadOn") >=0 )
                 {
                     inst_sign.setBackgroundResource(R.drawable.head_on);
                     inst_sign.setVisibility(View.VISIBLE);
+                    distanceBTW.setText(distance);
                 }
                 else{
                     inst_sign.setVisibility(View.INVISIBLE);
+                    distanceBTW.setText("No Instruction");
                 }
 
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
     }
 
-    protected void startLocationUpdates() {
+    protected void startLocationUpdates()
+    {
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, mLocationListener);
         MyState.mRequestLocationUpdates = true;
     }
 
-    protected void stopLocationUpdate() {
+    protected void stopLocationUpdate()
+    {
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, mLocationListener);
         MyState.mRequestLocationUpdates = false;
     }
 
     // cjoo: to restore previous value
-    private void updateValuesFromBundle(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
-                MyState.mRequestLocationUpdates = savedInstanceState.getBoolean(
-                        REQUESTING_LOCATION_UPDATES_KEY);
+    private void updateValuesFromBundle(Bundle savedInstanceState)
+    {
+        if (savedInstanceState != null)
+        {
+            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY))
+            {
+                MyState.mRequestLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY);
             }
-            if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
+            if (savedInstanceState.keySet().contains(LOCATION_KEY))
+            {
                 MyState.mLastLocation = savedInstanceState.getParcelable(LOCATION_KEY);
             }
-            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_KEY)) {
-                MyState.mLastUpdateTime = savedInstanceState.getLong(
-                        LAST_UPDATED_TIME_KEY);
+            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_KEY))
+            {
+                MyState.mLastUpdateTime = savedInstanceState.getLong(LAST_UPDATED_TIME_KEY);
             }
         }
     }
@@ -729,16 +794,19 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     // cjoo: check connectivity
     //      (Soon, we will not support Wi-Fi...)
-    private boolean checkConnection() {
-        ConnectivityManager connMgr =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    private boolean checkConnection()
+    {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeInfo = connMgr.getActiveNetworkInfo();
-        if (activeInfo != null && activeInfo.isConnected()) {
+        if (activeInfo != null && activeInfo.isConnected())
+        {
             wifiConnected = activeInfo.getType() == ConnectivityManager.TYPE_WIFI;
             mobileConnected = activeInfo.getType() == ConnectivityManager.TYPE_MOBILE;
             MyState.getLocalIpAddress();
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
@@ -785,9 +853,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         MyState.send(gSocket, text.toString());
     }
 
-    public void sendSpaceJoinRequest() {
-
-
+    public void sendSpaceJoinRequest()
+    {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Space name");
         alert.setMessage("Type the space name to join");
@@ -820,9 +887,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         alert.show();
     }
 
-    public void sendLeaveSpaceRequest() {
-
-
+    public void sendLeaveSpaceRequest()
+    {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Do you want from space?");
 
@@ -863,10 +929,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         map.clear();
     }
     // request Space Creation to the server
-    private void sendSpaceCreateRequest() {
-
-
-
+    private void sendSpaceCreateRequest()
+    {
         final SpaceRegisterDialog dialog = new SpaceRegisterDialog();
 
         final Thread first = new Thread(new Runnable() {
@@ -939,7 +1003,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     /**************************************************************************************************************************/
 
 
-    private void sendLeadersLastLocations(String Locations) {
+    private void sendLeadersLastLocations(String Locations)
+    {
 
         final CharSequence text;
         text = String.valueOf(MyState.id) + ";" + "Leader's Locations" + ";"
@@ -953,7 +1018,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     /**************************************************************************************************************************/
 
 
-    private void FileHandling_Sharing() {
+    private void FileHandling_Sharing()
+    {
         final CharSequence List_of_files[] = get_arrayAdapter();
         final CharSequence List_of_handling[] = {"Email","Show up in map","SMS", "Edit","Remove","Share"};
 
@@ -1024,7 +1090,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         builder_listOFfiles.show();
     }
 
-    public void showToast(final String toast) {
+    public void showToast(final String toast)
+    {
         runOnUiThread(new Runnable() {
             public void run() {
                 Toast.makeText(getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
@@ -1032,7 +1099,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         });
     }
 
-    public void showMessage(String title, String Message) {
+    public void showMessage(String title, String Message)
+    {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle(title);

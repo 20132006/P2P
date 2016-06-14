@@ -25,7 +25,6 @@ public class Receive implements Runnable {
     JSONArray array_of_points;
     JSONObject jsonObject = null;
     String followersID;
-    String LeadersID;
     GoogleMap map;
     MainActivity activity;
     User MyState;
@@ -56,7 +55,8 @@ public class Receive implements Runnable {
         OsrmQueryData.addLast(lastReceivedOsrmData);
     }
 
-    public Receive(DatagramSocket sck, User state, Users uList, MainActivity myActivity) {
+    public Receive(DatagramSocket sck, User state, Users uList, MainActivity myActivity)
+    {
         this.rSocket = sck;
         this.MyState = state;
         this.uList = uList;
@@ -73,16 +73,20 @@ public class Receive implements Runnable {
         return MyState;
     }
 
-    public void requestStop() {
+    public void requestStop()
+    {
         stopRequested = true;
-        if (updateThread != null) {
+        if (updateThread != null)
+        {
             updateThread.requestStop();
         }
 
     }
 
-    public void run() {
-        while (stopRequested == false) {
+    public void run()
+    {
+        while (stopRequested == false)
+        {
             try {// cjoo: debug
                 rPacket = new DatagramPacket(rMessage, rMessage.length);
                 rSocket.receive(rPacket);
@@ -97,42 +101,46 @@ public class Receive implements Runnable {
         }
     }
 
-    public void handlePacket(DatagramPacket pkt) {
+    public void handlePacket(DatagramPacket pkt)
+    {
         String msg;
         int index;
         String msgType;
 
         msg = new String(rPacket.getData(), 0, pkt.getLength());
-        //MyState.debugMsg = msg;
-        //MyState.mySpaceId = new String(recvMsg, 0, pkt.getLength());
-        //MyState.debugMsg = MyState.mySpaceId;
 
         index = msg.indexOf(";");
-        if (index <= 0) {
+        if (index <= 0)
+        {
             return;
-        } else {
+        }
+        else
+        {
             msgType = msg.substring(0, index);
             msg = msg.substring(index + 1, msg.length());
 
         }
+
         // now received something, which means connectivity
         // if connected (to the Server), then start sending location info.
-        if (updateThread == null || wrapUpdateThread.getState() == Thread.State.TERMINATED) {
+        if (updateThread == null || wrapUpdateThread.getState() == Thread.State.TERMINATED)
+        {
             MyState.isSendingUpates = true;
             updateThread = new thread_sendLocation(MyState, rSocket);
             wrapUpdateThread = new Thread(updateThread);
             wrapUpdateThread.start();
         }
 
-
-        if (msgType.equals("New User OK")) {  // response to New User registration
+        if (msgType.equals("New User OK"))// response to New User registration
+        {
             // do nothing
-        } else if (msgType.equals("Create Space OK")) {  // response to Create Space
+        }
+        else if (msgType.equals("Create Space OK"))// response to Create Space
+        {
             // remember space id
-
             MyState.isLeader = true;
-
-        } else if (msgType.equals("Join Space OK")) {  // response to Join Space
+        } else if (msgType.equals("Join Space OK"))// response to Join Space
+        {
             // remember space id
             if (MyState.isLeader == true)
             {
@@ -141,20 +149,19 @@ public class Receive implements Runnable {
                 MyState.firstLeadersMark = true;
                 MyState.mLeadersLastLatLng = null;
             }
-        } else if (msgType.equals("Location Update")) {  // periodic info.
+        }
+        else if (msgType.equals("Location Update"))// periodic info.
+        {
             // location & user id
             updateUserInfo(msg, uList);
-        }else if (msgType.equals(("Leader's Locations"))) {
-
+        }
+        else if (msgType.equals(("Leader's Locations")))
+        {
             updateLeadersLocation(msg, uList);
-
         }
 
 
     }
-
-
-
 
     public void updateLeadersLocation(String message, Users uList)
     {
@@ -225,9 +232,8 @@ public class Receive implements Runnable {
 
     }
 
-
-    class HttpAsyncTask extends AsyncTask<String, Void, String> {
-
+    class HttpAsyncTask extends AsyncTask<String, Void, String>
+    {
         @Override
         protected String doInBackground(String... arg) {
 
@@ -255,9 +261,12 @@ public class Receive implements Runnable {
             String LeadersID;
 
             index = message.indexOf(";");
-            if (index < 0) {
+            if (index < 0)
+            {
                 return;
-            } else {
+            }
+            else
+            {
                 LeadersID = message.substring(0, index);
                 message = message.substring(index + 1);
             }
@@ -268,7 +277,8 @@ public class Receive implements Runnable {
                 e.printStackTrace();
             }
             JSONArray jsonArray = null;
-            if (jsonObject!=null) {
+            if (jsonObject!=null)
+            {
                 try {
                     jsonArray = (JSONArray) jsonObject.get(/*"matched_points"*/ "matchings");
                 } catch (JSONException e) {
@@ -276,7 +286,8 @@ public class Receive implements Runnable {
                 }
             }
             JSONObject jsonObject2 = null;
-            if (jsonArray!=null) {
+            if (jsonArray!=null)
+            {
                 try {
                     jsonObject2 = (JSONObject) jsonArray.get(/*"matched_points"*/ 0);
                 } catch (JSONException e) {
@@ -284,7 +295,8 @@ public class Receive implements Runnable {
                 }
             }
             array_of_points = null;
-            if (jsonObject2!=null) {
+            if (jsonObject2!=null)
+            {
                 try {
                     array_of_points = (JSONArray) jsonObject2.get("geometry");
                 } catch (JSONException e) {
@@ -295,7 +307,8 @@ public class Receive implements Runnable {
             LatLng location = null;
             double lat = 0., lgt=0.;
 
-            for (int i = 0; i < array_of_points.length(); i++) {
+            for (int i = 0; i < array_of_points.length(); i++)
+            {
 
                 try {
                     lat = (double) ((JSONArray) array_of_points.get(i)).get(0);
@@ -308,14 +321,17 @@ public class Receive implements Runnable {
                     e.printStackTrace();
                 }
                 location = new LatLng(lat, lgt);
-                //if (MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME)) {
-                if (MyState.isLeader == false) {
-                    if (MyState.firstLeadersMark == true) {
+                if (MyState.isLeader == false)
+                {
+                    if (MyState.firstLeadersMark == true)
+                    {
                         map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
                         MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
                         MyState.mLeadersLastLatLng = location;
                         MyState.firstLeadersMark = false;
-                    } else {
+                    }
+                    else
+                    {
                         PolylineOptions line = new PolylineOptions()
                                 .add(MyState.mLeadersLastLatLng)
                                 .add(location);
@@ -323,17 +339,14 @@ public class Receive implements Runnable {
                         MyState.mLeadersLastLatLng = location;
                     }
 
-                    if (MyState.LeadersMark != null) {
+                    if (MyState.LeadersMark != null)
+                    {
 
                         MyState.LeadersMark.remove();
                         MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
                     }
                 }
-                //}
             }
-            //MarkerOptions marker = new MarkerOptions().position(location);
-
-            // map.addMarker(marker);
 
         }
         void actual_locations(String message)
@@ -376,14 +389,19 @@ public class Receive implements Runnable {
                 }
 
                 location = new LatLng(Double.parseDouble(lat), Double.parseDouble(lgt));
-                if (MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME)) {
-                    if (MyState.isLeader == false) {
-                        if (MyState.firstLeadersMark == true) {
+                if ( MyState.mLeardersLastUpdateTime < Long.parseLong(update_TIME) )
+                {
+                    if ( MyState.isLeader == false )
+                    {
+                        if ( MyState.firstLeadersMark == true )
+                        {
                             map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
                             MyState.LeadersMark = map.addMarker(new MarkerOptions().position(location).title("Leader's Locatoin" + LeadersID));
                             MyState.mLeadersLastLatLng = location;
                             MyState.firstLeadersMark = false;
-                        } else {
+                        }
+                        else
+                        {
                             PolylineOptions line = new PolylineOptions()
                                     .add(MyState.mLeadersLastLatLng)
                                     .add(location);
@@ -403,7 +421,8 @@ public class Receive implements Runnable {
 
     }
 
-    public void updateUserInfo(String msg, Users uList) {
+    public void updateUserInfo(String msg, Users uList)
+    {
         String text;
         int index;
         User user;
@@ -415,7 +434,9 @@ public class Receive implements Runnable {
         spaceOwner = "";
         // parsing & retrieving info
         text = msg;
-        while (text.length() > 10) {
+
+        while (text.length() > 10)
+        {
             index = text.indexOf(";");
             if (index <= 0) {
                 return;
@@ -425,36 +446,47 @@ public class Receive implements Runnable {
             }
 
             // the first client is the space owner
-            if (spaceOwner.equals("")) {
+            if (spaceOwner.equals(""))
+            {
                 spaceOwner = clientId;
             }
 
             // if non-existing user, add it
             user = uList.findUser(clientId);
-            if (user == null) {
+            if (user == null)
+            {
                 user = new User();
                 user.id = clientId;
                 uList.addUser(user);
             }
 
             index = text.indexOf(";");
-            if (index <= 0) {
+            if (index <= 0)
+            {
                 return;
-            } else {
+            }
+            else
+            {
                 cLatitude = text.substring(0, index);
                 text = text.substring(index + 1, text.length());
             }
             index = text.indexOf(";");
-            if (index <= 0) {
+            if (index <= 0)
+            {
                 return;
-            } else {
+            }
+            else
+            {
                 cLongitude = text.substring(0, index);
                 text = text.substring(index + 1, text.length());
             }
             index = text.indexOf(";");
-            if (index <= 0) {
+            if (index <= 0)
+            {
                 return;
-            } else {
+            }
+            else
+            {
                 cLastUpdateTime = text.substring(0, index);
                 text = text.substring(index + 1, text.length());
             }

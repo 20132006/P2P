@@ -4,10 +4,17 @@ import android.content.Context;
 import android.location.Location;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 
 /**
@@ -45,12 +52,7 @@ public class ProvideInstructions
     private JSONArray instruction_points;
     private JSONArray instructionOnIndex;
 
-
-    private float recentDistance;
-
-
-    Location lastLocation = null;
-
+    Boolean first_time = true;
 
     Boolean GetNextStatus;
 
@@ -65,11 +67,22 @@ public class ProvideInstructions
         OsrmQueryData = new LinkedList<String>() ;
         geometry_points = null;
         instruction_points = null;
-        instructionOnIndex=null;
-        index_instruction=-1;
-        recentDistance = -1.0f;
-        GetNextStatus=true;
+        instructionOnIndex = null;
+        index_instruction = 0;
+        GetNextStatus = true;
+        first_time = true;
+    }
+    public ProvideInstructions()
+    {
 
+        //baseContext = baseContext1;
+        OsrmQueryData = new LinkedList<String>() ;
+        geometry_points = null;
+        instruction_points = null;
+        instructionOnIndex = null;
+        index_instruction = 0;
+        GetNextStatus = true;
+        first_time = true;
     }
 
     public void setOsrmQueryData(String QueryData)
@@ -106,26 +119,23 @@ public class ProvideInstructions
 
 
 
-    public String QueryInstructions(Location FollowersLoc) throws JSONException {
-
+    public String QueryInstructions(Location FollowersLoc) throws JSONException, IOException
+    {
         if (OsrmInstructionsCondition())
         {
-
-
             if (GetNextStatus && !GetNextInstructions())
             {
                 return "";
             }
 
-
             instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
             int linked_instructions = (int) instructionOnIndex.get(3);
             int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
 
-
             JSONArray latlon = null;
             latlon = (JSONArray) geometry_points.get(linked_instructions);
 
+            String instruction_latLng = String.valueOf(latlon.get(0)) + "," + String.valueOf(latlon.get(1));
 
             Location locationA;
             Location locationB = new Location("point B");
@@ -137,25 +147,32 @@ public class ProvideInstructions
             locationB.setLongitude((Double) latlon.get(1));
 
 
-            recentDistance = locationA.distanceTo(locationB);
+            String latStr_dest = String.valueOf(locationB.getLatitude()) + "," + String.valueOf(locationB.getLongitude());
+            String latStr_start = String.valueOf(locationA.getLatitude()) + "," + String.valueOf(locationA.getLongitude());
 
 
-            if ( lastLocation!=null && locationB.distanceTo(lastLocation) < locationB.distanceTo(FollowersLoc)  )
+
+            String query_string = "http://10.20.17.242:5000/viaroute?loc=" + latStr_start + "&loc=" + latStr_dest + "&instructions=true&compression=false";
+
+
+
+            if ( !Check_Existence(query_string, instruction_latLng))
             {
                 GetNextStatus=true;
                 index_instruction++;
                 return QueryInstructions(FollowersLoc);
             }
 
+            Location Instruction_point;
 
-            if ( lastLocation == null || (lastLocation != null && FollowersLoc.distanceTo(lastLocation) > 3.0f))
-                lastLocation = FollowersLoc;
+            Instruction_point = new Location("Instruction");
 
-            Toast.makeText(baseContext, TurnInstruction[which_inst] + " " + recentDistance, Toast.LENGTH_SHORT).show();
-            //if (recentDistance <= 30.0f)
-            return TurnInstruction[which_inst];
-            //return "";
+            Instruction_point.setLatitude((Double) latlon.get(0));
+            Instruction_point.setLongitude((Double) latlon.get(1));
 
+
+            Toast.makeText(baseContext, TurnInstruction[which_inst] + " " + FollowersLoc.distanceTo(Instruction_point), Toast.LENGTH_SHORT).show();
+            return TurnInstruction[which_inst] + "," + String.valueOf(FollowersLoc.distanceTo(Instruction_point));
         }
         return "";
     }
@@ -163,58 +180,25 @@ public class ProvideInstructions
     private Boolean GetNextInstructions() throws JSONException
     {
 
-        if (recentDistance < 0.0f && instruction_points != null)
+        if (instruction_points != null )
         {
-            index_instruction = 0;
+            first_time = false;
             Boolean contin = true;
             while (contin)
             {
-
-
                 if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition())
                 {
                     return false;
                 }
-
                 instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
                 String temp = instructionOnIndex.get(0).toString();
                 int which_inst = Integer.parseInt(temp);
-
                 if ( ( 0<=which_inst && which_inst <=8 ) || ( 11<=which_inst && which_inst<=13 ) )
                 {
                     GetNextStatus = false;
                     return true;
                 }
                 index_instruction++;
-
-            }
-        }
-
-        else if (recentDistance >= 0.0f && instruction_points != null)
-        {
-
-            recentDistance = -1.0f;
-
-            Boolean contin = true;
-            while (contin)
-            {
-
-                if (index_instruction >= instruction_points.length() && !OsrmInstructionsCondition() )
-                {
-                    return false;
-                }
-
-                instructionOnIndex = (JSONArray) instruction_points.get(index_instruction);
-                int which_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
-
-                if ( ( 0<=which_inst && which_inst <=8 ) || ( 11<=which_inst && which_inst<=13 ) )
-                {
-                    GetNextStatus = false;
-                    return true;
-                }
-
-                index_instruction++;
-
             }
         }
         return false;
@@ -222,10 +206,8 @@ public class ProvideInstructions
 
     private Boolean OsrmInstructionsCondition() throws JSONException
     {
-
         if (instruction_points==null)
         {
-
             if (getFirstOsrmData())
             {
                 return true;
@@ -234,11 +216,9 @@ public class ProvideInstructions
             {
                 return false;
             }
-
         }
-        else if ( instruction_points.length() <= index_instruction)
+        else if ( index_instruction >= instruction_points.length())
         {
-
             if (getFirstOsrmData())
             {
                 return true;
@@ -247,9 +227,28 @@ public class ProvideInstructions
             {
                 return false;
             }
-
         }
-
         return true;
     }
+
+    public Boolean Check_Existence(String url_query , String Exist_Instruction) throws IOException
+    {
+        URL oracle = new URL(url_query);
+        URLConnection yc = oracle.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+        String inputLine;
+        String JsonO = "";
+        while ((inputLine = in.readLine()) != null) {
+            JsonO+=inputLine;
+            System.out.println(inputLine);
+        }
+
+        if (JsonO.indexOf(Exist_Instruction) >= 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }

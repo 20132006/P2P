@@ -10,11 +10,19 @@
         android:layout_height="match_parent"
         android:id="@+id/map"
         tools:context=".MapsActivityWifi"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        tools:layout="@layout/activity_main" />
     <ImageButton
-        android:layout_width="114dp"
-        android:layout_height="95dp"
+        android:layout_width="120dp"
+        android:layout_height="100dp"
         android:id="@+id/image_sign"
-        android:layout_gravity="left|top" />
+        android:background="@drawable/turn_right"
+        android:layout_gravity="center|bottom" />
+
+    <EditText
+        android:layout_width="120dp"
+        android:layout_height="20dp"
+        android:id="@+id/distance"
+        android:layout_gravity="center_horizontal|top" />
 
 </FrameLayout>
