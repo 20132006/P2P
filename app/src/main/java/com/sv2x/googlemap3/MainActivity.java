@@ -637,6 +637,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 Location previous_location = MyState.mLastLocation;
                 long previous_update = MyState.mLastUpdateTime;
 
+
+
                 showInstruction(location);
 
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
@@ -672,6 +674,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
         if (!MyState.isLeader && MyState.mySpaceId!="")
         {
+
+            ShowingInstruction.setOsrmQueryData("{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"\",\"\",\"유니스트길 (UNIST-gil)\",\"유니스트길 (UNIST-gil)\"],\"matched_points\":[[35.573284,129.191605],[35.573128,129.191559],[35.572891,129.191788],[35.572926,129.192047]],\"route_summary\":{\"total_time\":16,\"total_distance\":103},\"indices\":[0,1,2,3],\"instructions\":[[\"10\",\"\",18,0,1,\"18m\",\"S\",196,1,\"N\",16],[\"9\",\"\",32,2,10,\"31m\",\"S\",196,1,\"N\",16],[\"7\",\"유니스트길 (UNIST-gil)\",29,4,2,\"28m\",\"E\",83,1,\"W\",263],[\"9\",\"유니스트길 (UNIST-gil)\",24,6,1,\"23m\",\"N\",0,1,\"N\",0],[\"15\",\"\",0,9,0,\"0m\",\"N\",0,\"N\",0]],\"geometry\":[[35.573284,129.191605],[35.573196,129.191574],[35.573128,129.191559],[35.57304,129.191528],[35.572853,129.191467],[35.572868,129.19165],[35.572891,129.191788],[35.572891,129.191788],[35.572922,129.191986],[35.572926,129.192047]],\"hint_data\":{\"locations\":[\"_____w4aBwAAAAAADAAAAAMAAAAuAAAAFAAAAJZGBABOAQAAI84eAq1OswcCAAEB\",\"_____w4aBwAAAAAACwAAAAkAAAAZAAAAJAAAAJZGBABOAQAAhs0eAoFOswcBAAEB\",\"ABoHAP____8KHQAAFAAAABQAAAAZAAAAygEAAE9HBABOAQAAm8weAnJPswcBAAEB\",\"ABoHAP____8KHQAACAAAABMAAABLAAAAmQEAAE9HBABOAQAAvcweAnFQswcDAAEB\"],\"checksum\":1726661290}}]}\n");
+
             String Osrm_Data = null;
             if (rxThread != null)
             {
@@ -687,6 +692,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             try
             {
                 ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
+
+                location.setLatitude(35.573128);
+                location.setLongitude(129.191559);
 
                 String instruction = ShowingInstruction.QueryInstructions(location);
                 String distance = null;

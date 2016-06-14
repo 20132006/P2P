@@ -2,16 +2,25 @@ package com.sv2x.googlemap3;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -52,9 +61,13 @@ public class ProvideInstructions
     private JSONArray instruction_points;
     private JSONArray instructionOnIndex;
 
+    HttpAsyncTask httpAsyncTask;
+
     Boolean first_time = true;
 
     Boolean GetNextStatus;
+
+    String finished;
 
     private Integer index_instruction;
 
@@ -64,18 +77,6 @@ public class ProvideInstructions
     {
 
         baseContext = baseContext1;
-        OsrmQueryData = new LinkedList<String>() ;
-        geometry_points = null;
-        instruction_points = null;
-        instructionOnIndex = null;
-        index_instruction = 0;
-        GetNextStatus = true;
-        first_time = true;
-    }
-    public ProvideInstructions()
-    {
-
-        //baseContext = baseContext1;
         OsrmQueryData = new LinkedList<String>() ;
         geometry_points = null;
         instruction_points = null;
@@ -143,8 +144,11 @@ public class ProvideInstructions
             locationA = FollowersLoc;
 
 
-            locationB.setLatitude((Double) latlon.get(0));
-            locationB.setLongitude((Double) latlon.get(1));
+            JSONArray latlon1 = null;
+            latlon1 = (JSONArray) geometry_points.get(geometry_points.length()-1);
+
+            locationB.setLatitude((Double) latlon1.get(0));
+            locationB.setLongitude((Double) latlon1.get(1));
 
 
             String latStr_dest = String.valueOf(locationB.getLatitude()) + "," + String.valueOf(locationB.getLongitude());
@@ -152,11 +156,20 @@ public class ProvideInstructions
 
 
 
-            String query_string = "http://10.20.17.242:5000/viaroute?loc=" + latStr_start + "&loc=" + latStr_dest + "&instructions=true&compression=false";
 
+            String query_string = "http://router.project-osrm.org/match?loc="+ latStr_start +"&t=1424684612loc="+ latStr_dest +"&t=1424684616&instructions=true&compression=false";//"http://router.project-osrm.org/viaroute?loc=" + latStr_start + "&loc=" + latStr_dest + "&instructions=true&compression=false";
 
+            finished="";
 
-            if ( !Check_Existence(query_string, instruction_latLng))
+            httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask(this);
+            httpAsyncTask.execute(query_string);
+
+            while (finished=="")
+            {
+
+            }
+
+            if ( !Check_Existence(Double.parseDouble( String.valueOf( latlon.get(0)) ),Double.parseDouble( String.valueOf( latlon.get(1)) )))
             {
                 GetNextStatus=true;
                 index_instruction++;
@@ -231,24 +244,150 @@ public class ProvideInstructions
         return true;
     }
 
-    public Boolean Check_Existence(String url_query , String Exist_Instruction) throws IOException
+
+
+
+    public Boolean Check_Existence(Double lat1, Double lgt1) throws IOException
     {
-        URL oracle = new URL(url_query);
-        URLConnection yc = oracle.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-        String inputLine;
-        String JsonO = "";
-        while ((inputLine = in.readLine()) != null) {
-            JsonO+=inputLine;
-            System.out.println(inputLine);
-        }
+        JSONObject jsonObject = null;
 
-        if (JsonO.indexOf(Exist_Instruction) >= 0)
+        try {
+            jsonObject = new JSONObject(finished);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray jsonArray = null;
+        if (jsonObject!=null)
         {
-            return true;
+            try {
+                jsonArray = (JSONArray) jsonObject.get(/*"matched_points"*/ "matchings");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        JSONObject jsonObject2 = null;
+        if (jsonArray!=null)
+        {
+            try {
+                jsonObject2 = (JSONObject) jsonArray.get(/*"matched_points"*/ 0);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        JSONArray array_of_points = null;
+        if (jsonObject2!=null)
+        {
+            try {
+                array_of_points = (JSONArray) jsonObject2.get("geometry");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
+
+        double lat = 0., lgt=0.;
+
+        for (int i = 0; i < array_of_points.length(); i++)
+        {
+
+            try {
+                lat = (double) ((JSONArray) array_of_points.get(i)).get(0);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                lgt = (double) ((JSONArray) array_of_points.get(i)).get(1);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Location location2 = new Location("blabla");
+
+            location2.setLatitude(lat);
+            location2.setLongitude(lgt);
+
+            Location needed = new Location("blabla");
+
+            needed.setLatitude(lat1);
+            needed.setLongitude(lgt1);
+
+            double dist = location2.distanceTo(needed);
+
+            if ( dist < 2.0)
+            {
+                return true;
+            }
+        }
         return false;
+
     }
+
+    private class HttpAsyncTask extends AsyncTask<String, Void, String>
+    {
+        public ProvideInstructions activity;
+        public HttpAsyncTask(ProvideInstructions a)
+        {
+            this.activity = a;
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            try {
+                return GET(urls[0]);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        private String GET(String url) throws JSONException {
+            InputStream inputStream = null;
+            String result = "";
+
+            try {
+
+                // create HttpClient
+                HttpClient httpclient = new DefaultHttpClient();
+
+                // make GET request to the given URL
+                HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
+
+                // receive response as inputStream
+                inputStream = httpResponse.getEntity().getContent();
+
+                // convert inputstream to string
+                if(inputStream != null) {
+                    result = convertInputStreamToString(inputStream);
+                }
+                else
+                    result = "Did not work!";
+
+
+            } catch (Exception e) {
+                Log.d("InputStream", e.getLocalizedMessage());
+            }
+            return result;
+        }
+
+        private String convertInputStreamToString(InputStream inputStream) throws IOException {
+            BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+            String line = "";
+            String result = "";
+            while((line = bufferedReader.readLine()) != null)
+                result += line;
+            inputStream.close();
+            finished = result;
+            return result;
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+
+        protected void onPostExecute(String result)
+        {
+            finished=result;
+        }
+    }
+
 
 }

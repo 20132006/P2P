@@ -21,7 +21,7 @@
 
     <EditText
         android:layout_width="120dp"
-        android:layout_height="20dp"
+        android:layout_height="60dp"
         android:id="@+id/distance"
         android:layout_gravity="center_horizontal|top" />
 
