@@ -18,5 +18,6 @@
     <string name="debug">Debug</string>
 
     <string name="new_user">New User</string>
+    <string name="compose_email">Compose</string>
 
 </resources>

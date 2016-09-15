@@ -4,9 +4,11 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -76,7 +78,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     FileOutputStream fileOutputStream;
     FileInputStream fileInputStream;
     InputStreamReader inputStreamReader;
-    String Own_locations;
+    String Own_locations ="";
     String Leader_every_10_15_second_lacations = "";
 
     long last_leaders_send_locations_time;
@@ -211,51 +213,89 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     }
 
 
+    protected void sendEmail()
+    {
+        Log.i("Send email", "");
+        String[] TO = {""};
+        String[] CC = {""};
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+
+        emailIntent.setData(Uri.parse("mailto:"));
+        emailIntent.setType("text/plain");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
+        emailIntent.putExtra(Intent.EXTRA_CC, CC);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Your subject");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message goes here");
+
+        try {
+            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+            finish();
+            Log.i("Finished sending email...", "");
+        }
+        catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(MainActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
     public void run_file(String file_name)
     {
         try {
             fileInputStream = openFileInput(file_name.toString());
+            inputStreamReader = new InputStreamReader(fileInputStream);
+            char[] data = new char[data_block];
+            String final_data = "";
+            int size;
+
+            try {
+                while ((size = inputStreamReader.read(data)) > 0) // it will return size of block if its no data then it will return 0
+                {
+                    String read_data = String.copyValueOf(data, 0 , size);
+                    final_data += read_data;
+                    data = new  char[data_block];
+                }
+                int i,index;
+                LatLng last_position = null;
+                boolean first_pisition = true;
+                String info = final_data;
+                while (info.length() > 0)
+                {
+                    i = info.indexOf(";");
+                    String cLatitude,cLongitude;
+                    cLatitude = info.substring(0, i);
+                    info = info.substring(i + 1, info.length());
+
+                    i = info.indexOf(";");
+                    cLongitude = info.substring(0, i);
+                    info = info.substring(i+1,info.length());
+                    LatLng marking_location = new LatLng(Double.parseDouble(cLatitude), Double.parseDouble(cLongitude));
+                    if (first_pisition == true) {
+                        MarkerOptions marker = new MarkerOptions().position(marking_location).title(info);
+
+                        map.addMarker(marker);
+                        last_position = marking_location;
+                        first_pisition = false;
+
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
+                    }
+                    else {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
+                        PolylineOptions line = new PolylineOptions()
+                                .add(last_position)
+                                .add(marking_location);
+                        map.addPolyline(line);
+                        last_position = marking_location;
+                    }
+                }
+                MarkerOptions marker = new MarkerOptions().position(last_position).title(info);
+
+                map.addMarker(marker);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        }
-        inputStreamReader = new InputStreamReader(fileInputStream);
-        char[] data = new char[data_block];
-        String final_data = "";
-        requesting_url = "http://10.20.17.173:5000/match?";
-        int size;
-
-        try {
-            while ((size = inputStreamReader.read(data)) > 0) // it will return size of block if its no data then it will return 0
-            {
-                String read_data = String.copyValueOf(data, 0 , size);
-                final_data += read_data;
-                data = new  char[data_block];
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        int i,index;
-        String info = null;
-        while (final_data.length() > 0) {
-            index = final_data.indexOf("\n");
-            info = final_data.substring(0, index + 1);
-            final_data = final_data.substring(index + 1, final_data.length());
-
-            String cLatitude,cLongitude,ctime;
-
-            i = info.indexOf(";");
-            cLatitude = info.substring(0, i);
-            info = info.substring(i + 1, info.length());
-
-            i = info.indexOf(";");
-            cLongitude = info.substring(0, i);
-            info = info.substring(i + 1, info.length());
-
-            i = info.indexOf(";");
-            ctime = info.substring(0, i);
-            info = info.substring(i + 1, info.length());
-
-            requesting_url +="loc="+cLatitude+","+cLongitude+"&t="+ctime+"&"+"instructions=true&compression=false";
         }
     }
 
@@ -282,7 +322,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         return false;
     }
 
-    public void locate_all_points() throws JSONException {
+
+
+    public void locate_all_points() throws JSONException
+    {
         boolean first_pisition=true;
         LatLng last_position=null;
         for (int i = 0; i < array_of_points.length(); i++) {
@@ -380,7 +423,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     }
 
 
-    public void close_and_save() {
+    public void close_and_save()
+    {
         try {
             outputStreamWriter.write(Own_locations);
             outputStreamWriter.flush();
@@ -638,15 +682,16 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 long previous_update = MyState.mLastUpdateTime;
 
 
-
-                showInstruction(location);
-
+                if (!amILearder && MyState.mySpaceId!="" && )
+                {
+                    showInstruction(location);
+                }
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
                 //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
 
                 if ( outputStreamWriter != null )
                 {
-                    write_data(MyState.mLastLocation.getLatitude() + ";" + MyState.mLastLocation.getLongitude() + ";" + MyState.id.toString() + ";" + MyState.mLastUpdateTime);
+                    write_data(MyState.mLastLocation.getLatitude() + ";" + MyState.mLastLocation.getLongitude() + ";");
                 }
 
 
@@ -661,6 +706,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 {
                     Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
                 }
+
 
             }
         };

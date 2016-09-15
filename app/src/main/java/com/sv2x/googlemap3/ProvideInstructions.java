@@ -60,7 +60,7 @@ public class ProvideInstructions
     private JSONArray geometry_points;
     private JSONArray instruction_points;
     private JSONArray instructionOnIndex;
-
+    private double close_lat, close_lon;
     HttpAsyncTask httpAsyncTask;
 
     Boolean first_time = true;
@@ -85,12 +85,10 @@ public class ProvideInstructions
         GetNextStatus = true;
         first_time = true;
     }
-
-    public void setOsrmQueryData(String QueryData)
+    public void     setOsrmQueryData(String QueryData)
     {
         OsrmQueryData.addLast(QueryData);
     }
-
     private Boolean getFirstOsrmData() throws JSONException
     {
         JSONObject osrmData = null;
@@ -117,7 +115,75 @@ public class ProvideInstructions
 
         return true;
     }
+    public double MatchingCost(Location starting, Location ending, Location loc)
+    {
+        double cost = 0;
+        double angle_A, angle_B;
+        double a,b,c,h,cc;
+        double s,Area;
+        double lat_dis,lon_dis;
+        double c1,c2;
 
+        lat_dis = ending.getLatitude() - starting.getLatitude();
+        lon_dis = ending.getLongitude() - starting.getLongitude();
+
+        a = ending.distanceTo(loc);
+        b = starting.distanceTo(loc);
+        c = starting.distanceTo(ending);
+
+        a=Math.abs(a);
+        b=Math.abs(b);
+        c=Math.abs(c);
+
+        s = (a+b+c)/2;
+
+        Area = Math.sqrt( s * (s-a) * (s-b) * (s-c) );
+
+        h = Area*2/c;
+
+        angle_A = Math.toDegrees(Math.acos( ((b*b) + (c*c) - (a*a)) / (2*b*c) ));
+        angle_B = Math.toDegrees(Math.acos( ((a*a) + (c*c) - (b*b)) / (2*a*c) ));
+
+        c1 = Math.sqrt((b*b)-(h*h));
+        c2 = Math.sqrt((a*a)-(h*h));
+
+        double extra_lat,extra_lon,extra_ratio;
+
+        if (90.0 - angle_A < 0.0)
+        {
+            extra_ratio = c1/c;
+            extra_lat = lat_dis * extra_ratio;
+            extra_lon = lon_dis * extra_ratio;
+            close_lat = starting.getLatitude() - extra_lat;
+            close_lon = starting.getLongitude() - extra_lon;
+        }
+        else if (90.0 - angle_B < 0.0)
+        {
+            extra_ratio = (c2+c)/c;
+            extra_lat = lat_dis * extra_ratio;
+            extra_lon = lon_dis * extra_ratio;
+            close_lat = starting.getLatitude() + extra_lat;
+            close_lon = starting.getLongitude() + extra_lon;
+        }
+
+        else
+        {
+            extra_ratio = c1/c;
+            extra_lat = lat_dis * extra_ratio;
+            extra_lon = lon_dis * extra_ratio;
+            close_lat = starting.getLatitude() + extra_lat;
+            close_lon = starting.getLongitude() + extra_lon;
+        }
+
+        Location matched_location = new Location("Matched");
+
+        matched_location.setLatitude(close_lat);
+        matched_location.setLongitude(close_lon);
+
+        cost = Math.min(matched_location.distanceTo(starting),matched_location.distanceTo(ending));
+
+        return cost;
+    }
 
 
     public String QueryInstructions(Location FollowersLoc) throws JSONException, IOException
@@ -157,8 +223,8 @@ public class ProvideInstructions
 
 
 
-            String query_string = "http://router.project-osrm.org/match?loc="+ latStr_start +"&t=1424684612loc="+ latStr_dest +"&t=1424684616&instructions=true&compression=false";//"http://router.project-osrm.org/viaroute?loc=" + latStr_start + "&loc=" + latStr_dest + "&instructions=true&compression=false";
-
+            String query_string = "http://router.project-osrm.org/match?loc="+ latStr_start +"&t=1424684612loc="+ latStr_dest +"&t=1424684616&instructions=true&compression=false";
+            //"http://router.project-osrm.org/viaroute?loc=" + latStr_start + "&loc=" + latStr_dest + "&instructions=true&compression=false";
             finished="";
 
             httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask(this);
