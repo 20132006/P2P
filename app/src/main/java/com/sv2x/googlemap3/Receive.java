@@ -20,9 +20,13 @@ import java.util.LinkedList;
 /**
  * Created by netlab on 6/3/16.
  */
+
+
 public class Receive implements Runnable {
 
+    private Parser.ParsingFinishedListener callback;
     JSONArray array_of_points;
+    JSONArray array_of_instruction;
     JSONObject jsonObject = null;
     String followersID;
     GoogleMap map;
@@ -219,7 +223,6 @@ public class Receive implements Runnable {
             httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask();
             httpAsyncTask.execute(complete_msg);
 
-
             complete_msg="";
         }
         else if (messageState.equals("to be continue"))
@@ -231,6 +234,8 @@ public class Receive implements Runnable {
 
 
     }
+
+
 
     class HttpAsyncTask extends AsyncTask<String, Void, String>
     {
@@ -253,6 +258,9 @@ public class Receive implements Runnable {
             {
                 matched_locations(message);
             }
+
+            Parser p = new Parser(callback);
+            p.parse(array_of_points,array_of_instruction);
         }
 
         void matched_locations(String message)
@@ -299,6 +307,7 @@ public class Receive implements Runnable {
             {
                 try {
                     array_of_points = (JSONArray) jsonObject2.get("geometry");
+                    array_of_instruction = (JSONArray) jsonObject2.get("instructions");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

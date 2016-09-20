@@ -38,6 +38,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,11 +53,12 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Vector;
 
 
 // cjoo: we need the implementations,
 //which also requires functions of onConnected, onConnectionSuspended, onConnectionFailed
-public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, Parser.ParsingFinishedListener {
 
 
     int inpor = 0;
@@ -89,6 +91,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     boolean file_created = false;
 
     JSONArray array_of_points;
+    JSONArray array_of_instruction;
     //HttpAsyncTask httpAsyncTask;
     String requesting_url;
 
@@ -109,6 +112,13 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private String                          inputString;
     private WifiManager                     wifiManager;
     private WifiInfo                        wifiInfo;
+
+    Vector<Double> Learder_lat = null;
+    Vector<Double> Learder_lon = null;
+
+    Vector<Integer> instruction_code = null;
+    Vector<Integer> instruction_map = null;
+
 
     private ProvideInstructions ShowingInstruction;
 
@@ -132,7 +142,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         // restore old variables if exists
         //updateValuesFromBundle(savedInstanceState);
         // create map instance
-
         try {
             if (map == null) {
                 map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -146,6 +155,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         //mHandler = new Handler();
         buildGoogleApiClient();     // create GoogleApiClient
@@ -682,10 +692,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 long previous_update = MyState.mLastUpdateTime;
 
 
-                if (!amILearder && MyState.mySpaceId!="" && )
-                {
-                    showInstruction(location);
-                }
+
+                showInstruction(location);
+
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
                 //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
 
@@ -706,8 +715,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 {
                     Leader_every_10_15_second_lacations += location.getLatitude() + ";" + location.getLongitude() + ";" + MyState.mLastUpdateTime + ";";
                 }
-
-
             }
         };
     }
@@ -720,92 +727,69 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
         if (!MyState.isLeader && MyState.mySpaceId!="")
         {
+            ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
 
-            ShowingInstruction.setOsrmQueryData("{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"\",\"\",\"유니스트길 (UNIST-gil)\",\"유니스트길 (UNIST-gil)\"],\"matched_points\":[[35.573284,129.191605],[35.573128,129.191559],[35.572891,129.191788],[35.572926,129.192047]],\"route_summary\":{\"total_time\":16,\"total_distance\":103},\"indices\":[0,1,2,3],\"instructions\":[[\"10\",\"\",18,0,1,\"18m\",\"S\",196,1,\"N\",16],[\"9\",\"\",32,2,10,\"31m\",\"S\",196,1,\"N\",16],[\"7\",\"유니스트길 (UNIST-gil)\",29,4,2,\"28m\",\"E\",83,1,\"W\",263],[\"9\",\"유니스트길 (UNIST-gil)\",24,6,1,\"23m\",\"N\",0,1,\"N\",0],[\"15\",\"\",0,9,0,\"0m\",\"N\",0,\"N\",0]],\"geometry\":[[35.573284,129.191605],[35.573196,129.191574],[35.573128,129.191559],[35.57304,129.191528],[35.572853,129.191467],[35.572868,129.19165],[35.572891,129.191788],[35.572891,129.191788],[35.572922,129.191986],[35.572926,129.192047]],\"hint_data\":{\"locations\":[\"_____w4aBwAAAAAADAAAAAMAAAAuAAAAFAAAAJZGBABOAQAAI84eAq1OswcCAAEB\",\"_____w4aBwAAAAAACwAAAAkAAAAZAAAAJAAAAJZGBABOAQAAhs0eAoFOswcBAAEB\",\"ABoHAP____8KHQAAFAAAABQAAAAZAAAAygEAAE9HBABOAQAAm8weAnJPswcBAAEB\",\"ABoHAP____8KHQAACAAAABMAAABLAAAAmQEAAE9HBABOAQAAvcweAnFQswcDAAEB\"],\"checksum\":1726661290}}]}\n");
+            location.setLatitude(35.57287);
+            location.setLongitude(129.191483);
 
-            String Osrm_Data = null;
-            if (rxThread != null)
-            {
-                Osrm_Data = rxThread.getLastReceivedOsrmData();
-                if (Osrm_Data.indexOf("empty") < 0)
-                {
-                    int from = Osrm_Data.indexOf(";");
-                    Osrm_Data = Osrm_Data.substring(from+1);
-                    ShowingInstruction.setOsrmQueryData(Osrm_Data);
-                }
+            String instruction = ShowingInstruction.QueryInstructions(Learder_lat,Learder_lon,instruction_code,instruction_map,location);
+            String distance = null;
+
+            if (instruction.indexOf(",")>=0) {
+                distance = instruction.substring(instruction.indexOf(",") + 1);
             }
 
-            try
+            if (instruction.indexOf("Left") >= 0)
             {
-                ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
-
-                location.setLatitude(35.573128);
-                location.setLongitude(129.191559);
-
-                String instruction = ShowingInstruction.QueryInstructions(location);
-                String distance = null;
-
-                if (instruction.indexOf(",")>=0) {
-                    distance = instruction.substring(instruction.indexOf(",") + 1);
-                }
-
-                if (instruction.indexOf("Left") >= 0)
-                {
-                    inst_sign.setBackgroundResource(R.drawable.turnleft);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("Right") >= 0)
-                {
-                    inst_sign.setBackgroundResource(R.drawable.turnright);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("GoStraight") >= 0)
-                {
-                    inst_sign.setBackgroundResource(R.drawable.gostraight);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("RoundAbout") >=0 )
-                {
-                    inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("UTurn") >=0 )
-                {
-                    inst_sign.setBackgroundResource(R.drawable.u_turn);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("ReachViaLocation") >=0 )
-                {
-                    inst_sign.setBackgroundResource(R.drawable.reach_via_location);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("NoTurn") >=0 )
-                {
-                    inst_sign.setBackgroundResource(R.drawable.no_turn);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else if (instruction.indexOf("HeadOn") >=0 )
-                {
-                    inst_sign.setBackgroundResource(R.drawable.head_on);
-                    inst_sign.setVisibility(View.VISIBLE);
-                    distanceBTW.setText(distance);
-                }
-                else{
-                    inst_sign.setVisibility(View.INVISIBLE);
-                    distanceBTW.setText("No Instruction");
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+                inst_sign.setBackgroundResource(R.drawable.turnleft);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("Right") >= 0)
+            {
+                inst_sign.setBackgroundResource(R.drawable.turnright);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("GoStraight") >= 0)
+            {
+                inst_sign.setBackgroundResource(R.drawable.gostraight);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("RoundAbout") >=0 )
+            {
+                inst_sign.setBackgroundResource(R.drawable.roundaboutsign);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("UTurn") >=0 )
+            {
+                inst_sign.setBackgroundResource(R.drawable.u_turn);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("ReachViaLocation") >=0 )
+            {
+                inst_sign.setBackgroundResource(R.drawable.reach_via_location);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("NoTurn") >=0 )
+            {
+                inst_sign.setBackgroundResource(R.drawable.no_turn);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else if (instruction.indexOf("HeadOn") >=0 )
+            {
+                inst_sign.setBackgroundResource(R.drawable.head_on);
+                inst_sign.setVisibility(View.VISIBLE);
+                distanceBTW.setText(distance);
+            }
+            else{
+                inst_sign.setVisibility(View.INVISIBLE);
+                distanceBTW.setText("No Instruction");
             }
 
         }
@@ -922,6 +906,14 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             public void onClick(DialogInterface dialog, int whichButton)
             {
                 ShowingInstruction = new ProvideInstructions(getBaseContext());
+
+                Learder_lat = new Vector<>();
+                Learder_lon = new Vector<>();
+                instruction_code = new Vector<>();
+                instruction_map = new Vector<>();
+
+                temp_First("{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"\",\"\",\"유니스트길 (UNIST-gil)\",\"유니스트길 (UNIST-gil)\"],\"matched_points\":[[35.573284,129.191605],[35.573128,129.191559],[35.572891,129.191788],[35.572926,129.192047]],\"route_summary\":{\"total_time\":16,\"total_distance\":103},\"indices\":[0,1,2,3],\"instructions\":[[\"10\",\"\",18,0,1,\"18m\",\"S\",196,1,\"N\",16],[\"9\",\"\",32,2,10,\"31m\",\"S\",196,1,\"N\",16],[\"7\",\"유니스트길 (UNIST-gil)\",29,4,2,\"28m\",\"E\",83,1,\"W\",263],[\"9\",\"유니스트길 (UNIST-gil)\",24,6,1,\"23m\",\"N\",0,1,\"N\",0],[\"15\",\"\",0,9,0,\"0m\",\"N\",0,\"N\",0]],\"geometry\":[[35.573284,129.191605],[35.573196,129.191574],[35.573128,129.191559],[35.57304,129.191528],[35.572853,129.191467],[35.572868,129.19165],[35.572891,129.191788],[35.572891,129.191788],[35.572922,129.191986],[35.572926,129.192047]],\"hint_data\":{\"locations\":[\"_____w4aBwAAAAAADAAAAAMAAAAuAAAAFAAAAJZGBABOAQAAI84eAq1OswcCAAEB\",\"_____w4aBwAAAAAACwAAAAkAAAAZAAAAJAAAAJZGBABOAQAAhs0eAoFOswcBAAEB\",\"ABoHAP____8KHQAAFAAAABQAAAAZAAAAygEAAE9HBABOAQAAm8weAnJPswcBAAEB\",\"ABoHAP____8KHQAACAAAABMAAABLAAAAmQEAAE9HBABOAQAAvcweAnFQswcDAAEB\"],\"checksum\":1726661290}}]}\n");
+
                 MyState.isLeader = false;
                 String value = input.getText().toString();
                 MyState.mySpaceId = value;
@@ -1162,4 +1154,192 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         builder.show();
     }
 
+    public void temp_First(String message)
+    {
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(message);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray jsonArray = null;
+        if (jsonObject!=null)
+        {
+            try {
+                jsonArray = (JSONArray) jsonObject.get(/*"matched_points"*/ "matchings");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        JSONObject jsonObject2 = null;
+        if (jsonArray!=null)
+        {
+            try {
+                jsonObject2 = (JSONObject) jsonArray.get(/*"matched_points"*/ 0);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        array_of_points = null;
+        if (jsonObject2!=null)
+        {
+            try {
+                array_of_points = (JSONArray) jsonObject2.get("geometry");
+                array_of_instruction = (JSONArray) jsonObject2.get("instructions");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        JSONArray instructionOnIndex = null;
+        JSONArray latlon = null;
+        LatLng latLng = null;
+        int old_len;
+        if (Learder_lat!=null)
+        {
+            old_len = Learder_lat.size();
+        }
+        else
+        {
+            old_len = 0;
+        }
+        for (int i=0;i<array_of_points.length();i++)
+        {
+
+            try {
+                latlon = (JSONArray) array_of_points.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lat.add((double) latlon.get(0));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lon.add((double) latlon.get(1));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        for (int i=0;i<array_of_points.length();i++)
+        {
+
+            try {
+                latlon = (JSONArray) array_of_points.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lat.add((double) latlon.get(0));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lon.add((double) latlon.get(1));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+        for (int i=0;i<array_of_instruction.length();i++)
+        {
+            int code_inst = 0,mapped_instructions = 0;
+            try {
+                instructionOnIndex = (JSONArray) array_of_instruction.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                mapped_instructions = (int) instructionOnIndex.get(3);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                code_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            instruction_code.add(code_inst);
+            instruction_map.add(old_len + mapped_instructions);
+
+        }
+    }
+
+    @Override
+    public void onTextParsed(JSONArray array_of_point, JSONArray array_of_instruc) {
+
+        JSONArray instructionOnIndex = null;
+        JSONArray latlon = null;
+        LatLng latLng = null;
+        int old_len = Learder_lat.size();
+        for (int i=0;i<array_of_point.length();i++)
+        {
+
+            try {
+                latlon = (JSONArray) array_of_point.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lat.add((double) latlon.get(0));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lon.add((double) latlon.get(1));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        for (int i=0;i<array_of_point.length();i++)
+        {
+
+            try {
+                latlon = (JSONArray) array_of_point.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lat.add((double) latlon.get(0));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                Learder_lon.add((double) latlon.get(1));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+        for (int i=0;i<array_of_instruc.length();i++)
+        {
+            int code_inst = 0,mapped_instructions = 0;
+            try {
+                instructionOnIndex = (JSONArray) array_of_instruc.get(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                mapped_instructions = (int) instructionOnIndex.get(3);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                code_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            instruction_code.add(code_inst);
+            instruction_map.add(old_len + mapped_instructions);
+
+        }
+
+    }
 }
