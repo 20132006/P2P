@@ -47,7 +47,6 @@ public class ProvideInstructions
 
     public double MatchingCost(Location starting, Location ending, Location loc)
     {
-        double cost = 0;
         double angle_A, angle_B;
         double a,b,c,h;
         double s,Area;
@@ -81,19 +80,13 @@ public class ProvideInstructions
 
         if (90.0 - angle_A < 0.0)
         {
-            extra_ratio = c1/c;
-            extra_lat = lat_dis * extra_ratio;
-            extra_lon = lon_dis * extra_ratio;
-            close_lat = starting.getLatitude() - extra_lat;
-            close_lon = starting.getLongitude() - extra_lon;
+            close_lat = starting.getLatitude();// - extra_lat;
+            close_lon = starting.getLongitude();// - extra_lon;
         }
         else if (90.0 - angle_B < 0.0)
         {
-            extra_ratio = (c2+c)/c;
-            extra_lat = lat_dis * extra_ratio;
-            extra_lon = lon_dis * extra_ratio;
-            close_lat = starting.getLatitude() + extra_lat;
-            close_lon = starting.getLongitude() + extra_lon;
+            close_lat = ending.getLatitude();
+            close_lon = ending.getLongitude();
         }
 
         else
@@ -110,13 +103,11 @@ public class ProvideInstructions
         matched_location.setLatitude(close_lat);
         matched_location.setLongitude(close_lon);
 
-        cost = Math.min(matched_location.distanceTo(starting),matched_location.distanceTo(ending));
-
-        return cost;
+        return matched_location.distanceTo(loc);
     }
 
 
-    public String QueryInstructions(Vector<Double> learder_lat, Vector<Double> learder_lon, Vector<Integer> instruction_code, Vector<Integer> instruction_map, Location location)
+    public String QueryInstructions( Vector<Double> learder_lat, Vector<Double> learder_lon, Vector<Integer> instruction_code, Vector<Integer> instruction_map, Location location)
     {
         int i,indexOF = 0;
         double smallest_cost = -1.0;
@@ -129,8 +120,8 @@ public class ProvideInstructions
             str.setLatitude(learder_lat.elementAt(i));
             str.setLongitude(learder_lon.elementAt(i));
 
-            str.setLatitude(learder_lat.elementAt(i + 1));
-            str.setLongitude( learder_lon.elementAt(i+1));
+            end.setLatitude(learder_lat.elementAt(i + 1));
+            end.setLongitude( learder_lon.elementAt(i+1));
 
             cur_cost = MatchingCost(str,end,location);
             if (smallest_cost < 0 )

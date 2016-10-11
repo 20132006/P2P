@@ -6,6 +6,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.sv2x.googlemap3.LoginAndRegister.SendPacketToMainThread;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,7 +16,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by netlab on 6/3/16.
@@ -24,7 +27,8 @@ import java.util.LinkedList;
 
 public class Receive implements Runnable {
 
-    private Parser.ParsingFinishedListener callback;
+    private List<SendPacketToMainThread> listeners = new ArrayList<SendPacketToMainThread>();
+
     JSONArray array_of_points;
     JSONArray array_of_instruction;
     JSONObject jsonObject = null;
@@ -259,8 +263,11 @@ public class Receive implements Runnable {
                 matched_locations(message);
             }
 
-            Parser p = new Parser(callback);
-            p.parse(array_of_points,array_of_instruction);
+            for (SendPacketToMainThread hl : listeners)
+            {
+                hl.onTextParsed(array_of_points,array_of_instruction);
+            }
+            //p.parse(array_of_points,array_of_instruction);
         }
 
         void matched_locations(String message)
@@ -502,6 +509,10 @@ public class Receive implements Runnable {
             user.mLatLng = new LatLng(Double.parseDouble(cLatitude), Double.parseDouble(cLongitude));
             user.mLastUpdateTime = Long.parseLong(cLastUpdateTime);
         }
+    }
+    public void addListener(SendPacketToMainThread toAdd)
+    {
+        listeners.add(toAdd);
     }
 
 }
