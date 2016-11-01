@@ -19,5 +19,8 @@
 
     <string name="new_user">New User</string>
     <string name="compose_email">Compose</string>
+    <string name="StartingOrEnding">Use Loction As:</string>
+    <string name="StartingPlace">Starting Place</string>
+    <string name="DestinationPlace">Destination Place</string>
 
 </resources>

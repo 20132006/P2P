@@ -4,11 +4,9 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -19,6 +17,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -31,11 +30,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.sv2x.googlemap3.LoginAndRegister.SendPacketToMainThread;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,10 +46,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
@@ -124,6 +120,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
 
     private ProvideInstructions ShowingInstruction;
+    Marker MarkDestPlace=null;
+    Marker MarkStartPlace=null;
+
+    private Boolean finish_while; //onListenLongMapClick finish loop
+
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
@@ -137,10 +138,12 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         // cjoo: Get my ID & name
         getIdName(Phone_number, User_name);
 
-        ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep phone screen on
+
+        ImageButton inst_sign = (ImageButton) findViewById(R.id.image_sign); // Instruction sign Image
 
 
-        inst_sign.setVisibility(View.INVISIBLE);
+        inst_sign.setVisibility(View.INVISIBLE); // At the beginning we have to set it invisible
 
         // restore old variables if exists
         //updateValuesFromBundle(savedInstanceState);
@@ -167,51 +170,164 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         //httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask(this);
         activity=this;
 
-        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
+        //map.OnMapLongClickListener
+        map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
-            public void onMapClick(LatLng point) {
-                // TODO Auto-generated method stub
-                double lat = point.latitude;
-                double lng = point.longitude;
-                int i;
-                double smallest_cost = -1.0;
-                double cur_cost;
-                Location str = new Location("Starting");
-                Location end = new Location("Ending");
+            public void onMapLongClick(final LatLng latLng) {
 
-                Location location = new Location("Selected point");
+                final StartEndLocationDialogBox dialog = new StartEndLocationDialogBox();
+                finish_while=false;
 
-                location.setLatitude(lat);
-                location.setLongitude(lng);
-
-
-
-                for (i = 0; i < Simulation_lat.size() - 1; i++) {
-                    str.setLatitude(Simulation_lat.elementAt(i));
-                    str.setLongitude(Simulation_lng.elementAt(i));
-
-                    end.setLatitude(Simulation_lat.elementAt(i + 1));
-                    end.setLongitude(Simulation_lng.elementAt(i + 1));
-
-                    cur_cost = MatchingCost(str, end, location);
-                    if (smallest_cost < 0) {
-                        smallest_cost = cur_cost;
-                        fLat = close_lat;
-                        fLng = close_lon;
-                    } else if (smallest_cost > cur_cost) {
-                        smallest_cost = cur_cost;
-                        fLat = close_lat;
-                        fLng = close_lon;
-                    }
+                if (Simulation_lng==null)
+                {
+                    showToast("Please Load Your Trace Firstly");
                 }
-                Toast.makeText(MainActivity.this, "Selected Latitute and Logitute:" + lat + ", " + lng, Toast.LENGTH_SHORT).show();
-                MarkerOptions marker = new MarkerOptions().position(new LatLng(fLat, fLng)).title("Matching selected point");
+                else if (Simulation_lng.isEmpty())
+                {
+                    showToast("Your Trace has no data");
+                }
+                else
+                {
+                    final Thread first = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (MarkDestPlace!=null)
+                                dialog.setD_exist();
+                            if (MarkStartPlace!=null)
+                                dialog.setS_exist();
+                            dialog.show(getSupportFragmentManager(),"Define use of location");
+                        }
+                    });
 
-                map.addMarker(marker);
+                    first.start();
+
+                    Thread second = new Thread(new Runnable()
+                    {
+                        public void run()
+                        {
+                            if (first.isAlive())
+                            {
+                                try {
+                                    first.join();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            while (true)
+                            {
+                                if (dialog.get_decision() == 1)
+                                {
+                                    RemoveMarkerStartDest();
+                                    finish_while = true;
+                                    showToast("Please Select All Again");
+                                    break;
+                                }
+                                else if (dialog.get_decision() == 2 || dialog.get_decision() == 3)
+                                {
+                                    showToast("Selected Location Canceled");
+                                    finish_while = true;
+                                    break;
+                                }
+                                else if (dialog.get_decision() == 4)
+                                {
+                                    MarkSelectedPlace(latLng,"Starting Place Selected",1);
+                                    //marker = new MarkerOptions().position(temp_lat).title("Starting Place Selected");
+                                    showToast("Starting Place Selected");
+                                    finish_while = true;
+                                    dialog.dismiss();
+                                    break;
+
+                                }
+                                else if (dialog.get_decision() == 5)
+                                {
+                                    MarkSelectedPlace(latLng,"Destination Place Selected",2);
+                                    //marker = new MarkerOptions().position(temp_lat).title("Destination Place Selected");
+                                    showToast("Destination Place Selected");
+                                    finish_while = true;
+                                    dialog.dismiss();
+                                    break;
+                                }
+                                try {
+                                    Thread.sleep( 1000 );
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                    });
+                    second.start();
+                }
             }
         });
 
+    }
+    public void RemoveMarkerStartDest()
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (MarkStartPlace != null)
+                {
+                    MarkStartPlace.remove();
+                }
+                if (MarkDestPlace != null)
+                {
+                    MarkDestPlace.remove();
+                }
+                MarkDestPlace = null;
+                MarkStartPlace = null;
+            }
+        });
+    }
+
+    public void MarkSelectedPlace(LatLng latLng, final String titel, final int whichOption)
+    {
+        double lat = latLng.latitude;
+        double lng = latLng.longitude;
+        Location str = new Location("Starting");
+        Location end = new Location("Ending");
+        Location location = new Location("Selected point");
+        location.setLatitude(lat);
+        location.setLongitude(lng);
+        double cur_cost;
+        double smallest_cost = -1.0;
+        for (int i = 0; i < Simulation_lat.size() - 1; i++) {
+            str.setLatitude(Simulation_lat.elementAt(i));
+            str.setLongitude(Simulation_lng.elementAt(i));
+
+            end.setLatitude(Simulation_lat.elementAt(i + 1));
+            end.setLongitude(Simulation_lng.elementAt(i + 1));
+
+            cur_cost = MatchingCost(str, end, location);
+            if (smallest_cost < 0) {
+                smallest_cost = cur_cost;
+                fLat = close_lat;
+                fLng = close_lon;
+            } else if (smallest_cost > cur_cost) {
+                smallest_cost = cur_cost;
+                fLat = close_lat;
+                fLng = close_lon;
+            }
+        }
+        //Toast.makeText(MainActivity.this, "Selected Latitute and Logitute:" + lat + ", " + lng, Toast.LENGTH_SHORT).show();
+
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (whichOption == 1)
+                {
+                    MarkStartPlace = map.addMarker(new MarkerOptions().position(new LatLng(fLat, fLng)).title(titel));
+                }
+                else if (whichOption == 2)
+                {
+                    MarkDestPlace = map.addMarker(new MarkerOptions().position(new LatLng(fLat, fLng)).title(titel));
+                }
+            }
+        });
+
+        //return new LatLng(fLat, fLng);
     }
 
     public double MatchingCost(Location starting, Location ending, Location loc)
@@ -750,7 +866,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 showInstruction(location);
 
                 mLatLng = new LatLng(MyState.mLastLocation.getLatitude(), MyState.mLastLocation.getLongitude());
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
+                //map.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, MyState.mCurrentCameraLevel));
 
                 if ( outputStreamWriter != null )
                 {
@@ -758,7 +874,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 }
 
 
-                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 15 )
+                if (amILearder && (MyState.mLastUpdateTime - last_leaders_send_locations_time) >= 10 )
                 {
                     sendLeadersLastLocations(Leader_every_10_15_second_lacations);
                     last_leaders_send_locations_time = MyState.mLastUpdateTime;
@@ -790,6 +906,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
             if (instruction != null) {
 
+                showToast(instruction);
                 if (instruction.indexOf(",") >= 0) {
                     distance = instruction.substring(instruction.indexOf(",") + 1);
                 }
@@ -899,6 +1016,14 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         MyState.send(gSocket, text.toString());
     }
 
+    public void InitLeaderInfo()
+    {
+        Learder_lat = new Vector<>();
+        Learder_lon = new Vector<>();
+        instruction_code = new Vector<>();
+        instruction_map = new Vector<>();
+    }
+
     public void sendSpaceJoinRequest() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Space name");
@@ -911,12 +1036,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
             public void onClick(DialogInterface dialog, int whichButton)
             {
-                ShowingInstruction = new ProvideInstructions(getBaseContext());
-
-                Learder_lat = new Vector<>();
-                Learder_lon = new Vector<>();
-                instruction_code = new Vector<>();
-                instruction_map = new Vector<>();
+                InitLeaderInfo();
 
                 //temp_First("{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"\",\"\",\"유니스트길 (UNIST-gil)\",\"유니스트길 (UNIST-gil)\"],\"matched_points\":[[35.573284,129.191605],[35.573128,129.191559],[35.572891,129.191788],[35.572926,129.192047]],\"route_summary\":{\"total_time\":16,\"total_distance\":103},\"indices\":[0,1,2,3],\"instructions\":[[\"10\",\"\",18,0,1,\"18m\",\"S\",196,1,\"N\",16],[\"9\",\"\",32,2,10,\"31m\",\"S\",196,1,\"N\",16],[\"7\",\"유니스트길 (UNIST-gil)\",29,4,2,\"28m\",\"E\",83,1,\"W\",263],[\"9\",\"유니스트길 (UNIST-gil)\",24,6,1,\"23m\",\"N\",0,1,\"N\",0],[\"15\",\"\",0,9,0,\"0m\",\"N\",0,\"N\",0]],\"geometry\":[[35.573284,129.191605],[35.573196,129.191574],[35.573128,129.191559],[35.57304,129.191528],[35.572853,129.191467],[35.572868,129.19165],[35.572891,129.191788],[35.572891,129.191788],[35.572922,129.191986],[35.572926,129.192047]],\"hint_data\":{\"locations\":[\"_____w4aBwAAAAAADAAAAAMAAAAuAAAAFAAAAJZGBABOAQAAI84eAq1OswcCAAEB\",\"_____w4aBwAAAAAACwAAAAkAAAAZAAAAJAAAAJZGBABOAQAAhs0eAoFOswcBAAEB\",\"ABoHAP____8KHQAAFAAAABQAAAAZAAAAygEAAE9HBABOAQAAm8weAnJPswcBAAEB\",\"ABoHAP____8KHQAACAAAABMAAABLAAAAmQEAAE9HBABOAQAAvcweAnFQswcDAAEB\"],\"checksum\":1726661290}}]}\n");
 
@@ -1271,51 +1391,58 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     public void onTextParsed(JSONArray array_of_point, JSONArray array_of_instruc) {
         JSONArray instructionOnIndex = null;
         JSONArray latlon = null;
-        LatLng latLng = null;
-        int old_len = Learder_lat.size();
-        for (int i=0;i<array_of_point.length();i++)
+        int old_len=0;
+        if (Learder_lat != null)
+            old_len = Learder_lat.size();
+        else
+            InitLeaderInfo();
+        if (array_of_instruc == null || array_of_point == null)
         {
-
-            try {
-                latlon = (JSONArray) array_of_point.get(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lat.add((double) latlon.get(0));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lon.add((double) latlon.get(1));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+            showToast("You are out of road or not instructions detected");
         }
+        else {
+            for (int i = 0; i < array_of_point.length(); i++) {
 
-        for (int i=0;i<array_of_instruc.length();i++)
-        {
-            int code_inst = 0,mapped_instructions = 0;
-            try {
-                instructionOnIndex = (JSONArray) array_of_instruc.get(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                mapped_instructions = (int) instructionOnIndex.get(3);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                code_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
+                try {
+                    latlon = (JSONArray) array_of_point.get(i);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Learder_lat.add((double) latlon.get(0));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Learder_lon.add((double) latlon.get(1));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
 
-            instruction_code.add(code_inst);
-            instruction_map.add(old_len + mapped_instructions);
+            for (int i = 0; i < array_of_instruc.length(); i++) {
+                int code_inst = 0, mapped_instructions = 0;
+                try {
+                    instructionOnIndex = (JSONArray) array_of_instruc.get(i);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    mapped_instructions = (int) instructionOnIndex.get(3);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    code_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
+                instruction_code.add(code_inst);
+                instruction_map.add(old_len + mapped_instructions);
+
+            }
         }
     }
 }

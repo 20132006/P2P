@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="BothLocationOption">
+        <item>Starting</item>
+        <item>Destination</item>
+    </string-array>
+    <string-array name="StartingLocationOption">
+        <item>Starting</item>
+    </string-array>
+    <string-array name="DestinationLocationOption">
+        <item>Destination</item>
+    </string-array>
+</resources>

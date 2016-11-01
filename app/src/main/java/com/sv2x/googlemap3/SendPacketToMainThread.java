@@ -1,4 +1,4 @@
-package com.sv2x.googlemap3.LoginAndRegister;
+package com.sv2x.googlemap3;
 
 import org.json.JSONArray;
 

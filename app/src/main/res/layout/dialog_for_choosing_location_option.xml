@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="300dp"
+    android:layout_height="200dp"
+    android:weightSum="1">
+
+    <TextView
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Use Location As:"
+        android:id="@+id/title"
+        android:layout_x="0dp"
+        android:layout_y="22dp"
+        android:ellipsize="start"
+        android:textSize="30sp" />
+
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Starting Place"
+            android:id="@+id/start_id"
+            android:layout_x="0dp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Destination Place"
+            android:id="@+id/dest_id"
+            android:layout_x="0dp" />
+
+
+</LinearLayout>

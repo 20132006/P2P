@@ -6,7 +6,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.sv2x.googlemap3.LoginAndRegister.SendPacketToMainThread;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,21 +46,6 @@ public class Receive implements Runnable {
     Thread wrapUpdateThread;
     private volatile boolean stopRequested;
     String complete_msg;
-    private LinkedList<String> OsrmQueryData;
-
-
-    public String getLastReceivedOsrmData()
-    {
-        if (OsrmQueryData.isEmpty())
-            return "empty";
-        String temp =OsrmQueryData.getFirst();
-        OsrmQueryData.removeFirst();
-        return temp;
-    }
-
-    public void setLastReceivedOsrmData(String lastReceivedOsrmData) {
-        OsrmQueryData.addLast(lastReceivedOsrmData);
-    }
 
     public Receive(DatagramSocket sck, User state, Users uList, MainActivity myActivity)
     {
@@ -73,7 +57,6 @@ public class Receive implements Runnable {
         activity = myActivity;
         map = ((SupportMapFragment) activity.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
         complete_msg="";
-        OsrmQueryData = new LinkedList<String>() ;
     }
 
     public User getUser()
@@ -221,8 +204,6 @@ public class Receive implements Runnable {
             int until;
             until = message.indexOf("*****");
             complete_msg += message.substring(0,until);
-
-            setLastReceivedOsrmData(complete_msg);
 
             httpAsyncTask = (HttpAsyncTask) new HttpAsyncTask();
             httpAsyncTask.execute(complete_msg);
