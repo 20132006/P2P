@@ -35,6 +35,14 @@ public class ProvideInstructions
                     "AccessRestrictionPenalty" };
 
     private double close_lat, close_lon,fLat,fLng;
+    Boolean first_time = true;
+    Boolean GetNextStatus;
+
+    public ProvideInstructions(Context baseContext1)
+    {
+            GetNextStatus = true;
+            first_time = true;
+    }
 
 
     public double MatchingCost(Location starting, Location ending, Location loc)

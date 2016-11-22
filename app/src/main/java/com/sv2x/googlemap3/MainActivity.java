@@ -33,6 +33,7 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
@@ -114,16 +115,20 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     Vector<Double> Simulation_lat = null;
     Vector<Double> Simulation_lng = null;
+    Vector<Polyline> SimulationLine = null;
 
     Vector<Integer> instruction_code = null;
     Vector<Integer> instruction_map = null;
-
 
     private ProvideInstructions ShowingInstruction;
     Marker MarkDestPlace=null;
     Marker MarkStartPlace=null;
 
-    private Boolean finish_while; //onListenLongMapClick finish loop
+    Marker OriginalMarkDestPlace=null;
+    Marker OriginalMarkStartPlace=null;
+
+    int NewSelectedIndexStart = -1;
+    int NewSelectedIndexDest = -1;
 
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -176,7 +181,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             public void onMapLongClick(final LatLng latLng) {
 
                 final StartEndLocationDialogBox dialog = new StartEndLocationDialogBox();
-                finish_while=false;
 
                 if (Simulation_lng==null)
                 {
@@ -218,32 +222,28 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                                 if (dialog.get_decision() == 1)
                                 {
                                     RemoveMarkerStartDest();
-                                    finish_while = true;
                                     showToast("Please Select All Again");
                                     break;
                                 }
                                 else if (dialog.get_decision() == 2 || dialog.get_decision() == 3)
                                 {
                                     showToast("Selected Location Canceled");
-                                    finish_while = true;
                                     break;
                                 }
                                 else if (dialog.get_decision() == 4)
                                 {
-                                    MarkSelectedPlace(latLng,"Starting Place Selected",1);
+                                    MarkSelectedPlace(latLng, "Starting Place Selected", 1);
                                     //marker = new MarkerOptions().position(temp_lat).title("Starting Place Selected");
                                     showToast("Starting Place Selected");
-                                    finish_while = true;
                                     dialog.dismiss();
                                     break;
 
                                 }
                                 else if (dialog.get_decision() == 5)
                                 {
-                                    MarkSelectedPlace(latLng,"Destination Place Selected",2);
+                                    MarkSelectedPlace(latLng, "Destination Place Selected", 2);
                                     //marker = new MarkerOptions().position(temp_lat).title("Destination Place Selected");
                                     showToast("Destination Place Selected");
-                                    finish_while = true;
                                     dialog.dismiss();
                                     break;
                                 }
@@ -292,6 +292,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         location.setLongitude(lng);
         double cur_cost;
         double smallest_cost = -1.0;
+        int index;
+
         for (int i = 0; i < Simulation_lat.size() - 1; i++) {
             str.setLatitude(Simulation_lat.elementAt(i));
             str.setLongitude(Simulation_lng.elementAt(i));
@@ -304,16 +306,24 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 smallest_cost = cur_cost;
                 fLat = close_lat;
                 fLng = close_lon;
+                if (whichOption == 1)
+                    NewSelectedIndexStart = i;
+                else
+                    NewSelectedIndexDest = i;
             } else if (smallest_cost > cur_cost) {
                 smallest_cost = cur_cost;
                 fLat = close_lat;
                 fLng = close_lon;
+                if (whichOption == 1)
+                    NewSelectedIndexStart = i;
+                else
+                    NewSelectedIndexDest = i;
             }
         }
         //Toast.makeText(MainActivity.this, "Selected Latitute and Logitute:" + lat + ", " + lng, Toast.LENGTH_SHORT).show();
 
 
-        runOnUiThread(new Runnable() {
+        /*runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (whichOption == 1)
@@ -325,7 +335,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                     MarkDestPlace = map.addMarker(new MarkerOptions().position(new LatLng(fLat, fLng)).title(titel));
                 }
             }
-        });
+        });*/
+        removeSimulatedFile();
+        if (whichOption == 1)
+            SimulateLocationsAgain(new LatLng(fLat, fLng), new LatLng(Simulation_lat.get()));
 
         //return new LatLng(fLat, fLng);
     }
@@ -458,7 +471,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     public void run_file(String file_name) {
         Simulation_lng = new Vector<>();
         Simulation_lat = new Vector<>();
+        SimulationLine = new Vector<>();
 
+        Polyline polyline = null;
         try {
             fileInputStream = openFileInput(file_name.toString());
             inputStreamReader = new InputStreamReader(fileInputStream);
@@ -491,30 +506,25 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                     cLongitude = info.substring(0, i);
                     info = info.substring(i+1,info.length());
                     LatLng marking_location = new LatLng(Double.parseDouble(cLatitude), Double.parseDouble(cLongitude));
-                    if (first_pisition == true) {
-                        MarkerOptions marker = new MarkerOptions().position(marking_location).title(info);
 
-                        map.addMarker(marker);
+                    if (first_pisition == true) {
+                        OriginalMarkStartPlace = map.addMarker(new MarkerOptions().position(marking_location).title(info));
                         last_position = marking_location;
                         first_pisition = false;
-
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
                     }
                     else {
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
-                        PolylineOptions line = new PolylineOptions()
-                                .add(last_position)
-                                .add(marking_location);
-                        map.addPolyline(line);
+                        polyline = map.addPolyline(new PolylineOptions().add(last_position).add(marking_location));
                         last_position = marking_location;
+                        SimulationLine.add(polyline);
                     }
                     Simulation_lat.add(Double.parseDouble(cLatitude));
                     Simulation_lng.add(Double.parseDouble(cLongitude));
                 }
                 if (last_position!=null) {
-                    MarkerOptions marker = new MarkerOptions().position(last_position).title(info);
 
-                    map.addMarker(marker);
+                    OriginalMarkDestPlace =  map.addMarker(new MarkerOptions().position(last_position).title(info));
                 }
 
             } catch (IOException e) {
@@ -523,6 +533,75 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        NewSelectedIndexStart = 0;
+        NewSelectedIndexDest = Simulation_lat.size()-1;
+    }
+
+    void removeSimulatedFile()
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (OriginalMarkStartPlace != null)
+                {
+                    OriginalMarkStartPlace.remove();
+                }
+                if (OriginalMarkDestPlace != null)
+                {
+                    OriginalMarkDestPlace.remove();
+                }
+                for (int i=0;i<SimulationLine.size();i++)
+                {
+                    SimulationLine.get(i).remove();
+                }
+                OriginalMarkDestPlace = null;
+                OriginalMarkStartPlace = null;
+                SimulationLine = null;
+            }
+        });
+    }
+
+    public void SimulateLocationsAgain (final LatLng starting, final LatLng destination, final int index_s, final int index_d){
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SimulationLine = new Vector<>();
+                Polyline polyline;
+
+                int i;
+                LatLng last_position = null;
+                boolean first_pisition = true;
+
+                for (i=index_s;i<=index_d;i++)
+                {
+                    LatLng marking_location;
+                    if (i == index_s)
+                        marking_location = starting;
+                    else
+                        marking_location = new LatLng(Simulation_lat.get(i), Simulation_lng.get(i));
+
+                    if (first_pisition == true) {
+                        OriginalMarkStartPlace = map.addMarker(new MarkerOptions().position(marking_location).title("Starting"));
+                        last_position = marking_location;
+                        first_pisition = false;
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
+                    }
+                    else {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marking_location, 18));
+                        polyline = map.addPolyline(new PolylineOptions().add(last_position).add(marking_location));
+                        last_position = marking_location;
+                        SimulationLine.add(polyline);
+                    }
+                }
+
+                if (last_position!=null) {
+                    OriginalMarkDestPlace =  map.addMarker(new MarkerOptions().position(destination).title("Destination"));
+                }
+            }
+        });
+
+
     }
 
     public boolean remove_file(String file_name) {
@@ -1036,6 +1115,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
             public void onClick(DialogInterface dialog, int whichButton)
             {
+                ShowingInstruction = new ProvideInstructions(getBaseContext());
                 InitLeaderInfo();
 
                 //temp_First("{\"status\":200,\"status_message\":\"Found matchings\",\"matchings\":[{\"matched_names\":[\"\",\"\",\"유니스트길 (UNIST-gil)\",\"유니스트길 (UNIST-gil)\"],\"matched_points\":[[35.573284,129.191605],[35.573128,129.191559],[35.572891,129.191788],[35.572926,129.192047]],\"route_summary\":{\"total_time\":16,\"total_distance\":103},\"indices\":[0,1,2,3],\"instructions\":[[\"10\",\"\",18,0,1,\"18m\",\"S\",196,1,\"N\",16],[\"9\",\"\",32,2,10,\"31m\",\"S\",196,1,\"N\",16],[\"7\",\"유니스트길 (UNIST-gil)\",29,4,2,\"28m\",\"E\",83,1,\"W\",263],[\"9\",\"유니스트길 (UNIST-gil)\",24,6,1,\"23m\",\"N\",0,1,\"N\",0],[\"15\",\"\",0,9,0,\"0m\",\"N\",0,\"N\",0]],\"geometry\":[[35.573284,129.191605],[35.573196,129.191574],[35.573128,129.191559],[35.57304,129.191528],[35.572853,129.191467],[35.572868,129.19165],[35.572891,129.191788],[35.572891,129.191788],[35.572922,129.191986],[35.572926,129.192047]],\"hint_data\":{\"locations\":[\"_____w4aBwAAAAAADAAAAAMAAAAuAAAAFAAAAJZGBABOAQAAI84eAq1OswcCAAEB\",\"_____w4aBwAAAAAACwAAAAkAAAAZAAAAJAAAAJZGBABOAQAAhs0eAoFOswcBAAEB\",\"ABoHAP____8KHQAAFAAAABQAAAAZAAAAygEAAE9HBABOAQAAm8weAnJPswcBAAEB\",\"ABoHAP____8KHQAACAAAABMAAABLAAAAmQEAAE9HBABOAQAAvcweAnFQswcDAAEB\"],\"checksum\":1726661290}}]}\n");
@@ -1271,120 +1351,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         builder.setTitle(title);
         builder.setMessage(Message);
         builder.show();
-    }
-
-    public void temp_First(String message) {
-        JSONObject jsonObject = null;
-        try {
-            jsonObject = new JSONObject(message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        JSONArray jsonArray = null;
-        if (jsonObject!=null)
-        {
-            try {
-                jsonArray = (JSONArray) jsonObject.get(/*"matched_points"*/ "matchings");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        JSONObject jsonObject2 = null;
-        if (jsonArray!=null)
-        {
-            try {
-                jsonObject2 = (JSONObject) jsonArray.get(/*"matched_points"*/ 0);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        array_of_points = null;
-        if (jsonObject2!=null)
-        {
-            try {
-                array_of_points = (JSONArray) jsonObject2.get("geometry");
-                array_of_instruction = (JSONArray) jsonObject2.get("instructions");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        JSONArray instructionOnIndex = null;
-        JSONArray latlon = null;
-        LatLng latLng = null;
-        int old_len;
-        if (Learder_lat!=null)
-        {
-            old_len = Learder_lat.size();
-        }
-        else
-        {
-            old_len = 0;
-        }
-        for (int i=0;i<array_of_points.length();i++)
-        {
-
-            try {
-                latlon = (JSONArray) array_of_points.get(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lat.add((double) latlon.get(0));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lon.add((double) latlon.get(1));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        for (int i=0;i<array_of_points.length();i++)
-        {
-
-            try {
-                latlon = (JSONArray) array_of_points.get(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lat.add((double) latlon.get(0));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                Learder_lon.add((double) latlon.get(1));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-        for (int i=0;i<array_of_instruction.length();i++)
-        {
-            int code_inst = 0,mapped_instructions = 0;
-            try {
-                instructionOnIndex = (JSONArray) array_of_instruction.get(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                mapped_instructions = (int) instructionOnIndex.get(3);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                code_inst = Integer.parseInt(instructionOnIndex.get(0).toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            instruction_code.add(code_inst);
-            instruction_map.add(old_len + mapped_instructions);
-
-        }
     }
 
     @Override
